@@ -99,39 +99,15 @@
                 <div v-if="Array.isArray(b)" class="evo-branch-row">
                   <template v-for="(sub, si) in b" :key="si">
                     <span v-if="si > 0" class="evo-arrow">→</span>
-                    <div class="card evo-card" :style="isCurrent(sub) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(sub)">
-                      <PokemonIcon :src="sub.icon" :alt="sub.name" :size="80" />
-                      <div class="dex-num">No.{{ String(sub.dexNum).padStart(4, '0') }}</div>
-                      <div class="name">{{ sub.name }}<span v-if="sub.form" class="form-label">{{ sub.form }}</span></div>
-                      <div style="margin-top:4px">
-                        <span v-for="t in sub.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
-                      </div>
-                    </div>
+                    <PokemonCard :pokemon="sub" :highlight="isCurrent(sub)" @click="goTo(sub)" />
                   </template>
                 </div>
-                <div v-else class="card evo-card" :style="isCurrent(b) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(b)">
-                  <PokemonIcon :src="b.icon" :alt="b.name" :size="80" />
-                  <div class="dex-num">No.{{ String(b.dexNum).padStart(4, '0') }}</div>
-                  <div class="name">{{ b.name }}<span v-if="b.form" class="form-label">{{ b.form }}</span></div>
-                  <div style="margin-top:4px">
-                    <span v-for="t in b.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
-                  </div>
-                </div>
+                <PokemonCard v-else :pokemon="b" :highlight="isCurrent(b)" @click="goTo(b)" />
               </template>
             </div>
           </div>
           <!-- 普通节点 -->
-          <div v-else
-            class="card evo-card"
-            :style="isCurrent(node) ? { borderColor: 'var(--accent)' } : {}"
-            @click="goTo(node)">
-            <PokemonIcon :src="node.icon" :alt="node.name" :size="80" />
-            <div class="dex-num">No.{{ String(node.dexNum).padStart(4, '0') }}</div>
-            <div class="name">{{ node.name }}<span v-if="node.form" class="form-label">{{ node.form }}</span></div>
-            <div style="margin-top:4px">
-              <span v-for="t in node.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
-            </div>
-          </div>
+          <PokemonCard v-else :pokemon="node" :highlight="isCurrent(node)" @click="goTo(node)" />
         </template>
       </div>
     </div>
@@ -143,6 +119,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPokemon } from '../data.js'
 import PokemonIcon from '../components/PokemonIcon.vue'
+import PokemonCard from '../components/PokemonCard.vue'
 
 const props = defineProps({ id: String })
 const route = useRoute()

@@ -24,32 +24,22 @@
       >{{ ty.name }}</button>
     </div>
     <div class="card-grid">
-      <div
+      <PokemonCard
         v-for="p in paged" :key="p.id"
-        class="card" @click="$router.push(`/pokemon/${p.id}`)"
-      >
-        <div class="dex-num" style="position:absolute;top:8px;left:10px">No.{{ String(p.dexNum).padStart(4, '0') }}</div>
-        <PokemonIcon v-if="p.icon" :src="p.icon" :alt="p.name" />
-        <div class="name">{{ p.name }}<span v-if="p.form" class="form-label">{{ p.form }}</span></div>
-        <div style="margin-top:6px">
-          <span
-            v-for="t in p.types" :key="t.id"
-            class="type-badge" :style="{ background: t.color }"
-          >{{ t.name }}</span>
-        </div>
-      </div>
+        :pokemon="p" @click="$router.push(`/pokemon/${p.id}`)"
+      />
     </div>
     <div v-if="filtered.length > pageSize" style="text-align:center;padding:20px">
       <button
         v-if="page > 1"
-        class="filter-btn" @click="page--; window.scrollTo(0,0)"
+        class="filter-btn" @click="page--; scrollTop()"
       >上一页</button>
       <span style="margin:0 12px;font-size:13px;color:var(--text2)">
         {{ page }} / {{ totalPages }}
       </span>
       <button
         v-if="page < totalPages"
-        class="filter-btn" @click="page++; window.scrollTo(0,0)"
+        class="filter-btn" @click="page++; scrollTop()"
       >下一页</button>
     </div>
   </template>
@@ -58,7 +48,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { getPokemon, getTypes } from '../data.js'
-import PokemonIcon from '../components/PokemonIcon.vue'
+import PokemonCard from '../components/PokemonCard.vue'
 
 const allPokemon = ref([])
 const types = ref([])
@@ -105,4 +95,6 @@ const paged = computed(() => {
 })
 
 watch([search, typeFilter], () => { page.value = 1 })
+
+function scrollTop() { document.documentElement.scrollTop = 0 }
 </script>

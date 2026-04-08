@@ -205,11 +205,6 @@ a:hover { text-decoration: underline; }
 .evo-chain {
   display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
 }
-.evo-card {
-  width: 140px; padding: 12px 8px;
-}
-.evo-card .name { font-size: 14px; }
-.evo-card .dex-num { font-size: 11px; }
 .evo-arrow { color: var(--text2); font-size: 24px; }
 .evo-branch-group {
   display: flex; align-items: center; gap: 8px;
