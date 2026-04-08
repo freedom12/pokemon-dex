@@ -210,28 +210,45 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   const wtMap = {}; for (const w of weightRaw) wtMap[w.id] = t(w.ms)
   const clMap = {}; for (const c of colorRaw) clMap[c.id] = t(c.ms)
 
-  // 构建游戏版本图鉴描述查找器
-  const zukanSofts = softRaw.filter(s => s.msZukanCommentFile && s.msZukanCommentID)
-  function getZukanDescs(dexNum, formNo, mdDescTextId) {
-    const descEntry = descRaw.find(d => d.id === mdDescTextId)
-    if (!descEntry) return []
-    const allowedSofts = new Set(descEntry.mdSoftwares)
+  // 构建图鉴描述：直接从文本中扫描所有 zukan_comment_* 段落
+  const zukanGames = [
+    { file: 'zukan_comment_x', prefix: 'ZKN_X', digits: 3, label: 'Pokémon X' },
+    { file: 'zukan_comment_y', prefix: 'ZKN_Y', digits: 3, label: 'Pokémon Y' },
+    { file: 'zukan_comment_alpha', prefix: 'ZKN_ALPHA', digits: 3, label: 'Pokémon Alpha Sapphire' },
+    { file: 'zukan_comment_omega', prefix: 'ZKN_OMEGA', digits: 3, label: 'Pokémon Omega Ruby' },
+    { file: 'zukan_comment_sun', prefix: 'ZKN_SUN', digits: 3, label: 'Pokémon Sun' },
+    { file: 'zukan_comment_moon', prefix: 'ZKN_MOON', digits: 3, label: 'Pokémon Moon' },
+    { file: 'zukan_comment_ultrasun', prefix: 'ZKN_ULSUN', digits: 3, label: 'Pokémon Ultra Sun' },
+    { file: 'zukan_comment_ultramoon', prefix: 'ZKN_ULMOON', digits: 3, label: 'Pokémon Ultra Moon' },
+    { file: 'zukan_comment_letsgo', prefix: 'ZKN_LETSGO', digits: 3, label: "Pokémon Let's Go" },
+    { file: 'zukan_comment_sword', prefix: 'ZKN_SWORD', digits: 3, label: 'Pokémon Sword' },
+    { file: 'zukan_comment_shield', prefix: 'ZKN_SHIELD', digits: 3, label: 'Pokémon Shield' },
+    { file: 'zukan_comment_brilliantdiamond', prefix: 'ZKN_DIAMOND', digits: 3, label: 'Pokémon Brilliant Diamond' },
+    { file: 'zukan_comment_shiningpearl', prefix: 'ZKN_PEARL', digits: 3, label: 'Pokémon Shining Pearl' },
+    { file: 'zukan_comment_arceus', prefix: 'ZKN_ARCEUS', digits: 3, label: 'Pokémon Legends: Arceus' },
+    { file: 'zukan_comment_scarlet', prefix: 'ZKN_SCARLET', digits: 4, label: 'Pokémon Scarlet' },
+    { file: 'zukan_comment_violet', prefix: 'ZKN_VIOLET', digits: 4, label: 'Pokémon Violet' },
+    { file: 'zukan_comment_za', prefix: 'ZKN_ZA', digits: 4, label: 'Pokémon Legends Z-A' },
+  ]
+  // 尝试用 softwareName 本地化游戏名，找不到就用 label
+  const gameNameMap = {}
+  for (const sf of softRaw) {
+    if (sf.msZukanCommentFile) {
+      const name = t(sf.msname)
+      if (name) gameNameMap[sf.msZukanCommentFile] = name
+    }
+  }
+
+  function getZukanDescs(dexNum, formNo) {
     const descs = []
-    for (const sf of zukanSofts) {
-      if (!allowedSofts.has(sf.id)) continue
-      const gameName = t(sf.msname)
-      if (!gameName) continue
-      // 解析 ID 模板: "zc:ZKN_SWORD_{0:D3}_{1:D3}" 或 "zc:ZKN_SCARLET_{0:D4}_{1:D3}"
-      const tmpl = sf.msZukanCommentID // e.g. "zc:ZKN_SWORD_{0:D3}_{1:D3}"
-      const file = sf.msZukanCommentFile // e.g. "zukan_comment_sword"
-      // 替换 {0:D3} → 3位数字, {0:D4} → 4位数字
-      const key = tmpl
-        .replace(/\{0:D(\d)\}/, (_, d) => String(dexNum).padStart(parseInt(d), '0'))
-        .replace(/\{1:D(\d)\}/, (_, d) => String(formNo).padStart(parseInt(d), '0'))
-      // key 现在是 "zc:ZKN_SWORD_001_000"，但文本 map 中的 key 是 "zukan_comment_sword:ZKN_SWORD_001_000"
-      const textKey = key.replace(/^zc:/, `${file}:`)
+    for (const g of zukanGames) {
+      const dexStr = String(dexNum).padStart(g.digits, '0')
+      const formStr = String(formNo).padStart(3, '0')
+      const textKey = `${g.file}:${g.prefix}_${dexStr}_${formStr}`
       const desc = t(textKey)
-      if (desc && desc !== textKey) descs.push({ game: gameName, desc })
+      if (desc && desc !== textKey) {
+        descs.push({ game: gameNameMap[g.file] || g.label, desc })
+      }
     }
     return descs
   }
@@ -248,7 +265,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     if (evo?.mdPokemonImages?.length > 0) {
       evoChain = evo.mdPokemonImages.map(img => parseInt(img.replace('DI', '').substring(0, 4), 10))
     }
-    const zukanDescs = getZukanDescs(dexNum, d.formNo || 0, d.mdDescTextId)
+    const zukanDescs = getZukanDescs(dexNum, d.formNo || 0)
     const icon = imageMap[d.mdPokemonImage] || ''
     const iconFemale = imageFemaleMap[d.mdPokemonImage] || ''
     const zukanKey = `${dexNum}_${d.formNo || 0}_${d.isDMax || 0}`

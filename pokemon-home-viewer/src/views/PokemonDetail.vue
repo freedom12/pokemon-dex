@@ -37,7 +37,7 @@
               <span v-for="t in pokemon.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
             </div>
           </div>
-          <PokemonIcon :src="displayIcon" :alt="pokemon.name" :size="96" />
+          <PokemonIcon :src="displayIcon" :alt="pokemon.name" :size="100" />
         </div>
 
         <!-- 基本信息 -->
