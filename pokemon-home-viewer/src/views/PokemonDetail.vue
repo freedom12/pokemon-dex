@@ -102,7 +102,7 @@
                     <div class="card evo-card" :style="isCurrent(sub) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(sub)">
                       <PokemonIcon :src="sub.icon" :alt="sub.name" :size="80" />
                       <div class="dex-num">No.{{ String(sub.dexNum).padStart(4, '0') }}</div>
-                      <div class="name">{{ sub.name }}</div>
+                      <div class="name">{{ sub.name }}<span v-if="sub.form" class="form-label">{{ sub.form }}</span></div>
                       <div style="margin-top:4px">
                         <span v-for="t in sub.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
                       </div>
@@ -112,7 +112,7 @@
                 <div v-else class="card evo-card" :style="isCurrent(b) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(b)">
                   <PokemonIcon :src="b.icon" :alt="b.name" :size="80" />
                   <div class="dex-num">No.{{ String(b.dexNum).padStart(4, '0') }}</div>
-                  <div class="name">{{ b.name }}</div>
+                  <div class="name">{{ b.name }}<span v-if="b.form" class="form-label">{{ b.form }}</span></div>
                   <div style="margin-top:4px">
                     <span v-for="t in b.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
                   </div>
@@ -127,7 +127,7 @@
             @click="goTo(node)">
             <PokemonIcon :src="node.icon" :alt="node.name" :size="80" />
             <div class="dex-num">No.{{ String(node.dexNum).padStart(4, '0') }}</div>
-            <div class="name">{{ node.name }}</div>
+            <div class="name">{{ node.name }}<span v-if="node.form" class="form-label">{{ node.form }}</span></div>
             <div style="margin-top:4px">
               <span v-for="t in node.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
             </div>
@@ -234,8 +234,8 @@ async function loadData() {
       const resolved = p.evoChain.map(e => {
         const found = all.find(x => x.dexNum === e.dexNum && x.formNo === e.formNo)
         return found
-          ? { id: found.id, dexNum: found.dexNum, formNo: found.formNo, name: found.name, icon: found.icon, types: found.types }
-          : { id: '', dexNum: e.dexNum, formNo: e.formNo, name: `#${e.dexNum}`, icon: '', types: [] }
+          ? { id: found.id, dexNum: found.dexNum, formNo: found.formNo, name: found.name, form: found.form, icon: found.icon, types: found.types }
+          : { id: '', dexNum: e.dexNum, formNo: e.formNo, name: `#${e.dexNum}`, form: '', icon: '', types: [] }
       })
       evoTree.value = buildEvoTree(resolved, p.evoTemplate)
     } else {

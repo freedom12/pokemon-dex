@@ -80,6 +80,7 @@ a:hover { text-decoration: underline; }
 .card .dex-num { font-size: 12px; color: var(--text2); }
 .card .name { font-size: 16px; font-weight: 600; margin: 4px 0; }
 .card .form-name { font-size: 12px; color: var(--text2); }
+.form-label { font-size: 12px; color: var(--text2); font-weight: 400; margin-left: 4px; }
 
 /* Type badge */
 .type-badge {

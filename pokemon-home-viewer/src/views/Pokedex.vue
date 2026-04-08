@@ -30,8 +30,7 @@
       >
         <div class="dex-num" style="position:absolute;top:8px;left:10px">No.{{ String(p.dexNum).padStart(4, '0') }}</div>
         <PokemonIcon v-if="p.icon" :src="p.icon" :alt="p.name" />
-        <div class="name">{{ p.name }}</div>
-        <div class="form-name" v-if="p.form">{{ p.form }}</div>
+        <div class="name">{{ p.name }}<span v-if="p.form" class="form-label">{{ p.form }}</span></div>
         <div style="margin-top:6px">
           <span
             v-for="t in p.types" :key="t.id"
