@@ -87,17 +87,50 @@
     </div>
 
     <!-- 进化链 -->
-    <div class="detail-section" v-if="evoNames.length > 1">
+    <div class="detail-section" v-if="evoTree.length > 0">
       <h3>进化链</h3>
       <div class="evo-chain">
-        <template v-for="(e, i) in evoNames" :key="i">
-          <span v-if="i > 0" class="evo-arrow">→</span>
-          <div class="card evo-card" :style="e.dexNum === pokemon.dexNum ? { borderColor: 'var(--accent)' } : {}" @click="goTo(e)">
-            <PokemonIcon :src="e.icon" :alt="e.name" :size="80" />
-            <div class="dex-num">No.{{ String(e.dexNum).padStart(4, '0') }}</div>
-            <div class="name">{{ e.name }}</div>
+        <template v-for="(node, i) in evoTree" :key="i">
+          <span v-if="i > 0 && !node.isBranchStart" class="evo-arrow">→</span>
+          <!-- 分支显示 -->
+          <div v-if="node.branches" class="evo-branch-group">
+            <span class="evo-arrow">→</span>
+            <div class="evo-branch-col">
+              <template v-for="(b, bi) in node.branches" :key="bi">
+                <div v-if="Array.isArray(b)" class="evo-branch-row">
+                  <template v-for="(sub, si) in b" :key="si">
+                    <span v-if="si > 0" class="evo-arrow">→</span>
+                    <div class="card evo-card" :style="isCurrent(sub) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(sub)">
+                      <PokemonIcon :src="sub.icon" :alt="sub.name" :size="80" />
+                      <div class="dex-num">No.{{ String(sub.dexNum).padStart(4, '0') }}</div>
+                      <div class="name">{{ sub.name }}</div>
+                      <div style="margin-top:4px">
+                        <span v-for="t in sub.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div v-else class="card evo-card" :style="isCurrent(b) ? { borderColor: 'var(--accent)' } : {}" @click="goTo(b)">
+                  <PokemonIcon :src="b.icon" :alt="b.name" :size="80" />
+                  <div class="dex-num">No.{{ String(b.dexNum).padStart(4, '0') }}</div>
+                  <div class="name">{{ b.name }}</div>
+                  <div style="margin-top:4px">
+                    <span v-for="t in b.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- 普通节点 -->
+          <div v-else
+            class="card evo-card"
+            :style="isCurrent(node) ? { borderColor: 'var(--accent)' } : {}"
+            @click="goTo(node)">
+            <PokemonIcon :src="node.icon" :alt="node.name" :size="80" />
+            <div class="dex-num">No.{{ String(node.dexNum).padStart(4, '0') }}</div>
+            <div class="name">{{ node.name }}</div>
             <div style="margin-top:4px">
-              <span v-for="t in e.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
+              <span v-for="t in node.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
             </div>
           </div>
         </template>
@@ -118,8 +151,12 @@ const router = useRouter()
 const allPokemon = ref([])
 const pokemon = ref(null)
 const forms = ref([])
-const evoNames = ref([])
+const evoTree = ref([])
 const showFemale = ref(false)
+
+function isCurrent(node) {
+  return pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
+}
 
 const displayIcon = computed(() => {
   if (!pokemon.value) return ''
@@ -149,6 +186,43 @@ function statColor(val) {
   return '#22d3ee'
 }
 
+// 根据 templatePrefab 构建进化树
+function buildEvoTree(nodes, template) {
+  if (!nodes || nodes.length <= 1) return nodes || []
+  const t = template || ''
+
+  // 伊布特殊：1 → 多分支
+  if (t.includes('Eevee')) {
+    return [nodes[0], { branches: nodes.slice(1) }]
+  }
+  // Type3B: A → (B | C)
+  if (t.includes('3B') && nodes.length === 3) {
+    return [nodes[0], { branches: [nodes[1], nodes[2]] }]
+  }
+  // Type4B: A → B → (C | D)
+  if (t.includes('4B') && nodes.length === 4) {
+    return [nodes[0], nodes[1], { branches: [nodes[2], nodes[3]] }]
+  }
+  // Type4C: A → (B | C | D)
+  if (t.includes('4C') && nodes.length === 4) {
+    return [nodes[0], { branches: [nodes[1], nodes[2], nodes[3]] }]
+  }
+  // Type4D: A → (B | C), C → D
+  if (t.includes('4D') && nodes.length === 4) {
+    return [nodes[0], { branches: [nodes[1], [nodes[2], nodes[3]]] }]
+  }
+  // Type5A: A → (B | D), B → C, D → E
+  if (t.includes('5A') && nodes.length >= 5) {
+    return [nodes[0], { branches: [[nodes[1], nodes[2]], [nodes[3], nodes[4]]] }]
+  }
+  // Type5B: A → (B | C | D), D → E
+  if (t.includes('5B') && nodes.length >= 5) {
+    return [nodes[0], { branches: [nodes[1], nodes[2], [nodes[3], nodes[4]]] }]
+  }
+  // 默认线性
+  return nodes
+}
+
 async function loadData() {
   const all = await getPokemon()
   allPokemon.value = all
@@ -158,14 +232,15 @@ async function loadData() {
   if (p) {
     forms.value = all.filter(x => x.dexNum === p.dexNum)
     if (p.evoChain.length > 0) {
-      evoNames.value = p.evoChain.map(dex => {
-        const found = all.find(x => x.dexNum === dex && x.formNo === 0)
+      const resolved = p.evoChain.map(e => {
+        const found = all.find(x => x.dexNum === e.dexNum && x.formNo === e.formNo)
         return found
-          ? { id: found.id, dexNum: found.dexNum, name: found.name, icon: found.icon, types: found.types }
-          : { id: '', dexNum: dex, name: `#${dex}`, icon: '', types: [] }
+          ? { id: found.id, dexNum: found.dexNum, formNo: found.formNo, name: found.name, icon: found.icon, types: found.types }
+          : { id: '', dexNum: e.dexNum, formNo: e.formNo, name: `#${e.dexNum}`, icon: '', types: [] }
       })
+      evoTree.value = buildEvoTree(resolved, p.evoTemplate)
     } else {
-      evoNames.value = []
+      evoTree.value = []
     }
   }
 }

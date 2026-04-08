@@ -272,8 +272,13 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const stats = personalMap[psId]
     const evo = evoMap[d.mdEvoPatId]
     let evoChain = []
+    let evoTemplate = ''
     if (evo?.mdPokemonImages?.length > 0) {
-      evoChain = evo.mdPokemonImages.map(img => parseInt(img.replace('DI', '').substring(0, 4), 10))
+      evoTemplate = evo.templatePrefab || ''
+      evoChain = evo.mdPokemonImages.map(img => {
+        const numPart = img.replace('DI', '').replace(/[A-Z]$/, '')
+        return { dexNum: parseInt(numPart.substring(0, 4), 10), formNo: parseInt(numPart.substring(4), 10) }
+      })
     }
     const zukanDescs = getZukanDescs(dexNum, d.formNo || 0)
     const icon = imageMap[d.mdPokemonImage] || ''
@@ -291,7 +296,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       zukanDescs,
       abilities: (d.mdTokuIds || []).map(tid => tokuseiMap[tid] ? { name: tokuseiMap[tid].name, desc: tokuseiMap[tid].desc } : null).filter(Boolean),
       stats: stats ? { hp: stats.hp, atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, agi: stats.agi, total: stats.hp + stats.atk + stats.def + stats.spatk + stats.spdef + stats.agi } : null,
-      evoChain, isMega: d.isMega === 1, isDMax: d.isDMax === 1, isInNumberSort: d.isInNumberSort === 1,
+      evoChain, evoTemplate, isMega: d.isMega === 1, isDMax: d.isDMax === 1, isInNumberSort: d.isInNumberSort === 1,
     })
   }
   pokemon.sort((a, b) => a.dexNum - b.dexNum || a.formNo - b.formNo)

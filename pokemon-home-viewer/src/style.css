@@ -210,6 +210,15 @@ a:hover { text-decoration: underline; }
 .evo-card .name { font-size: 14px; }
 .evo-card .dex-num { font-size: 11px; }
 .evo-arrow { color: var(--text2); font-size: 24px; }
+.evo-branch-group {
+  display: flex; align-items: center; gap: 8px;
+}
+.evo-branch-col {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.evo-branch-row {
+  display: flex; align-items: center; gap: 8px;
+}
 
 /* Loading */
 .loading {
