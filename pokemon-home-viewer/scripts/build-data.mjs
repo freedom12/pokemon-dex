@@ -231,11 +231,21 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     { file: 'zukan_comment_za', prefix: 'ZKN_ZA', digits: 4, label: 'Pokémon Legends Z-A' },
   ]
   // 尝试用 softwareName 本地化游戏名，找不到就用 label
+  // 同一个 zukanCommentFile 可能对应多个游戏版本（如 letsgo 对应皮卡丘和伊布）
   const gameNameMap = {}
   for (const sf of softRaw) {
     if (sf.msZukanCommentFile) {
       const name = t(sf.msname)
-      if (name) gameNameMap[sf.msZukanCommentFile] = name
+      if (name) {
+        if (gameNameMap[sf.msZukanCommentFile]) {
+          // 避免重复
+          if (!gameNameMap[sf.msZukanCommentFile].includes(name)) {
+            gameNameMap[sf.msZukanCommentFile] += ' / ' + name
+          }
+        } else {
+          gameNameMap[sf.msZukanCommentFile] = name
+        }
+      }
     }
   }
 
