@@ -1,0 +1,6 @@
+[submodule "madatsubomi"]
+	path = madatsubomi
+	url = https://github.com/sora10pls/madatsubomi.git
+[submodule "megaturtle-text"]
+	path = megaturtle-text
+	url = https://github.com/sora10pls/megaturtle-text.git
