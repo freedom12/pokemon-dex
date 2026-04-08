@@ -94,7 +94,6 @@
           <span v-if="i > 0 && !node.isBranchStart" class="evo-arrow">→</span>
           <!-- 分支显示 -->
           <div v-if="node.branches" class="evo-branch-group">
-            <span class="evo-arrow">→</span>
             <div class="evo-branch-col">
               <template v-for="(b, bi) in node.branches" :key="bi">
                 <div v-if="Array.isArray(b)" class="evo-branch-row">
