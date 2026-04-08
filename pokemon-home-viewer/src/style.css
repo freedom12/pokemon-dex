@@ -139,6 +139,9 @@ a:hover { text-decoration: underline; }
   margin-bottom: 8px; border-bottom: 1px solid var(--border);
   padding-bottom: 4px;
 }
+.section-toggle { cursor: pointer; user-select: none; }
+.toggle-arrow { display: inline-block; transition: transform .2s; font-size: 14px; }
+.toggle-arrow.open { transform: rotate(90deg); }
 @media (max-width: 800px) {
   .detail-top { flex-direction: column; }
   .detail-main-img { width: 100%; height: auto; max-width: 400px; }

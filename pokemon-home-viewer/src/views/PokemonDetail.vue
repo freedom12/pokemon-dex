@@ -66,8 +66,8 @@
 
     <!-- 特性 -->
     <div class="detail-section" v-if="pokemon.abilities.length">
-      <h3>特性</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <h3 class="section-toggle" @click="abilityOpen = !abilityOpen">特性 <span class="toggle-arrow" :class="{ open: abilityOpen }">▸</span></h3>
+      <div v-show="abilityOpen" style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(ab, i) in pokemon.abilities" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
           <div style="font-weight:600;font-size:14px">{{ ab.name }}</div>
           <div v-if="ab.desc" style="font-size:13px;color:var(--text2);margin-top:4px">{{ ab.desc }}</div>
@@ -77,8 +77,8 @@
 
     <!-- 图鉴描述 -->
     <div class="detail-section" v-if="pokemon.zukanDescs && pokemon.zukanDescs.length">
-      <h3>图鉴描述</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <h3 class="section-toggle" @click="zukanOpen = !zukanOpen">图鉴描述 <span class="toggle-arrow" :class="{ open: zukanOpen }">▸</span></h3>
+      <div v-show="zukanOpen" style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(zd, i) in pokemon.zukanDescs" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
           <div style="font-size:12px;color:var(--accent);margin-bottom:4px">{{ zd.game }}</div>
           <div style="font-size:14px;color:var(--text2);white-space:pre-line">{{ zd.desc }}</div>
@@ -88,8 +88,8 @@
 
     <!-- 进化链 -->
     <div class="detail-section" v-if="evoTree.length > 0">
-      <h3>进化链</h3>
-      <div class="evo-chain">
+      <h3 class="section-toggle" @click="evoOpen = !evoOpen">进化链 <span class="toggle-arrow" :class="{ open: evoOpen }">▸</span></h3>
+      <div v-show="evoOpen" class="evo-chain">
         <template v-for="(node, i) in evoTree" :key="i">
           <span v-if="i > 0 && !node.isBranchStart" class="evo-arrow">→</span>
           <!-- 分支显示 -->
@@ -129,6 +129,9 @@ const pokemon = ref(null)
 const forms = ref([])
 const evoTree = ref([])
 const showFemale = ref(false)
+const zukanOpen = ref(true)
+const abilityOpen = ref(true)
+const evoOpen = ref(true)
 
 function isCurrent(node) {
   return pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
