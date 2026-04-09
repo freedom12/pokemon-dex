@@ -31,6 +31,7 @@ const zukanList = await fetchZukanImages();
 // 构建匹配映射: key → image_m
 // key 格式: "{dexNum}_{formNo}_{gender}_{isDMax}"
 const zukanImageMap = {};
+// 特例: 4 个有性别差异形态的图片（打不算形态差异）需要特殊处理
 const specialGenderForms = new Set([
   521, //高傲雉鸡
   592, //轻飘飘
