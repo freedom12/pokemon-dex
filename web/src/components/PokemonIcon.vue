@@ -11,7 +11,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-const FALLBACK = import.meta.env.BASE_URL + 'fallback-pokemon.png'
+const FALLBACK = import.meta.env.BASE_URL + 'img/fallback-pokemon.png'
 
 const props = defineProps({
   src: { type: String, default: '' },
