@@ -253,3 +253,41 @@ a:hover { text-decoration: underline; }
 .wiki-link:hover {
   color: var(--accent); text-decoration: underline;
 }
+
+/* Type filter select */
+.type-select {
+  padding: 10px 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 15px;
+  outline: none; cursor: pointer;
+}
+.type-select:focus { border-color: var(--accent); }
+
+/* Dex select dropdown */
+.dex-select { position: relative; }
+.dex-select-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 15px;
+  cursor: pointer; white-space: nowrap; outline: none;
+}
+.dex-select-btn:focus { border-color: var(--accent); }
+.dex-select-placeholder { color: var(--text2); }
+.dex-select-arrow { margin-left: auto; font-size: 12px; color: var(--text2); }
+.dex-select-icons { display: flex; gap: 2px; align-items: center; }
+.dex-select-list {
+  position: absolute; top: 100%; left: 0; z-index: 200;
+  margin-top: 4px; padding: 4px 0;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); list-style: none;
+  max-height: 320px; overflow-y: auto; min-width: 100%;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.dex-select-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; cursor: pointer; font-size: 14px;
+  white-space: nowrap; transition: background .15s;
+}
+.dex-select-item:hover { background: rgba(233,69,96,.1); }
+.dex-select-item.active { color: var(--accent); }

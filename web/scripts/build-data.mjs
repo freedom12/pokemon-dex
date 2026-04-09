@@ -113,6 +113,8 @@ const ballsRaw = loadJson('monsterBall.json')
 const regionsRaw = loadJson('region.json')
 const personalRaw = loadJson('personalGlobal.json')
 const evoRaw = loadJson('evolutionPattern.json')
+const dictMgmtRaw = loadJson('dictionaryManagement.json')
+const softAppearRaw = loadJson('softwareAppear.json')
 const ribbonRaw = loadJson('ribbon.json')
 const wazaRaw = loadJson('waza.json')
 const wazaCatRaw = loadJson('wazaCategory.json')
@@ -233,12 +235,12 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   // 尝试用 softwareName 本地化游戏名，找不到就用 label
   // 同一个 zukanCommentFile 可能对应多个游戏版本（如 letsgo 对应皮卡丘和伊布）
   const gameNameMap = {}
+  const gameSoftIdsMap = {}
   for (const sf of softRaw) {
     if (sf.msZukanCommentFile) {
       const name = t(sf.msname)
       if (name) {
         if (gameNameMap[sf.msZukanCommentFile]) {
-          // 避免重复
           if (!gameNameMap[sf.msZukanCommentFile].includes(name)) {
             gameNameMap[sf.msZukanCommentFile] += ' / ' + name
           }
@@ -246,6 +248,8 @@ for (const [langId, langName, folder, suffix] of LANGS) {
           gameNameMap[sf.msZukanCommentFile] = name
         }
       }
+      if (!gameSoftIdsMap[sf.msZukanCommentFile]) gameSoftIdsMap[sf.msZukanCommentFile] = []
+      gameSoftIdsMap[sf.msZukanCommentFile].push(sf.id)
     }
   }
 
@@ -257,7 +261,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       const textKey = `${g.file}:${g.prefix}_${dexStr}_${formStr}`
       const desc = t(textKey)
       if (desc && desc !== textKey) {
-        descs.push({ game: gameNameMap[g.file] || g.label, desc })
+        descs.push({ game: gameNameMap[g.file] || g.label, sids: gameSoftIdsMap[g.file] || [], desc })
       }
     }
     return descs
@@ -297,6 +301,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       abilities: (d.mdTokuIds || []).map(tid => tokuseiMap[tid] ? { name: tokuseiMap[tid].name, desc: tokuseiMap[tid].desc } : null).filter(Boolean),
       stats: stats ? { hp: stats.hp, atk: stats.atk, def: stats.def, spatk: stats.spatk, spdef: stats.spdef, agi: stats.agi, total: stats.hp + stats.atk + stats.def + stats.spatk + stats.spdef + stats.agi } : null,
       evoChain, evoTemplate, isMega: d.isMega === 1, isDMax: d.isDMax === 1, isInNumberSort: d.isInNumberSort === 1,
+      appearGames: d.appearSoftwareAper || [],
     })
   }
   pokemon.sort((a, b) => a.dexNum - b.dexNum || a.formNo - b.formNo)
@@ -304,6 +309,27 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   // 计划/版本
   const plans = planRaw.map(p => ({ id: p.id, isFree: p.isFree === 1, name: t(p.msname), info: t(p.msinfo) }))
   const softwares = softRaw.filter(s => s.msname).map(s => ({ id: s.id, romId: s.romId, gen: s.gen, name: t(s.msname), region: t(s.msregion) })).filter(s => s.name && s.name !== s.id)
+  // 图鉴列表
+  // 构建 hostDicId → mdSoftwareIds 映射（子图鉴继承主图鉴的游戏ID）
+  const dmById = {}
+  for (const dm of dictMgmtRaw) dmById[dm.id] = dm
+  function getSoftwareIds(dm) {
+    if (dm.mdSoftwareIds && dm.mdSoftwareIds.length > 0) return dm.mdSoftwareIds
+    if (dm.hostDicId && dmById[dm.hostDicId]) return getSoftwareIds(dmById[dm.hostDicId])
+    return []
+  }
+  const dexList = dictMgmtRaw
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map(dm => {
+      const name = t(dm.msRegionDicName)
+      const swFile = `dictionarySW${dm.dicMdName.replace('SW', '')}.json`
+      let entries = []
+      try { entries = loadJson(swFile) } catch {}
+      const pokemonIds = entries.map(e => e.mdDicId)
+      const softwareIds = getSoftwareIds(dm)
+      return { id: dm.id, name: name || dm.dicMdName, softwareIds, pokemonIds }
+    })
+    .filter(d => d.pokemonIds.length > 0)
   const abilities = Object.values(tokuseiMap).filter(a => a.name)
   const typeList = Object.values(typeMap).sort((a, b) => a.sort - b.sort)
 
@@ -331,6 +357,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   writeFileSync(resolve(langOut, 'regions.json'), JSON.stringify(regions))
   writeFileSync(resolve(langOut, 'plans.json'), JSON.stringify(plans))
   writeFileSync(resolve(langOut, 'softwares.json'), JSON.stringify(softwares))
+  writeFileSync(resolve(langOut, 'dexList.json'), JSON.stringify(dexList))
   writeFileSync(resolve(langOut, 'abilities.json'), JSON.stringify(abilities))
   writeFileSync(resolve(langOut, 'ribbons.json'), JSON.stringify(ribbons))
   writeFileSync(resolve(langOut, 'items.json'), JSON.stringify(itemNames))
@@ -341,4 +368,11 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 // 语言列表元数据
 const langMeta = LANGS.map(([id, name]) => ({ id, name }))
 writeFileSync(resolve(OUT, 'langs.json'), JSON.stringify(langMeta))
+
+// 游戏组（用于详情页显示游戏可用性）
+const gameGroups = softAppearRaw
+  .filter(sa => sa.appearTarget === 1)
+  .sort((a, b) => a.appearTargetSort - b.appearTargetSort)
+  .map(sa => ({ id: sa.id, softwareIds: sa.mdSoftwares }))
+writeFileSync(resolve(OUT, 'gameGroups.json'), JSON.stringify(gameGroups))
 console.log('✅ All done!')

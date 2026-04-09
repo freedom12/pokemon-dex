@@ -6,19 +6,20 @@
         <div class="page-title">招式列表</div>
         <div class="page-count">共 {{ filtered.length }} 个招式</div>
       </div>
-      <input
-        class="search-bar" style="max-width:320px"
-        v-model="search" placeholder="搜索招式名称..."
-      />
-    </div>
-    <div class="filter-bar">
-      <button class="filter-btn" :class="{ active: !typeFilter }" @click="typeFilter = ''">全部</button>
-      <button
-        v-for="ty in types" :key="ty.id"
-        class="filter-btn" :class="{ active: typeFilter === ty.id }"
-        @click="typeFilter = typeFilter === ty.id ? '' : ty.id"
-        :style="typeFilter === ty.id ? { background: ty.color + '33', borderColor: ty.color } : {}"
-      >{{ ty.name }}</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="type-select" v-model="typeFilter">
+          <option value="">全部</option>
+          <option v-for="ty in types" :key="ty.id" :value="ty.id">{{ ty.name }}</option>
+        </select>
+        <select class="type-select" v-model="categoryFilter">
+          <option value="">全部</option>
+          <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+        </select>
+        <input
+          class="search-bar" style="max-width:320px"
+          v-model="search" placeholder="搜索招式名称..."
+        />
+      </div>
     </div>
     <div style="overflow-x:auto">
       <table class="data-table">
@@ -58,6 +59,7 @@ const types = ref([])
 const loaded = ref(false)
 const search = ref('')
 const typeFilter = ref('')
+const categoryFilter = ref('')
 const page = ref(1)
 const pageSize = 50
 
@@ -66,6 +68,11 @@ onMounted(async () => {
   allMoves.value = m
   types.value = t
   loaded.value = true
+})
+
+const categories = computed(() => {
+  const set = new Set(allMoves.value.map(m => m.category).filter(Boolean))
+  return [...set]
 })
 
 const filtered = computed(() => {
@@ -77,6 +84,9 @@ const filtered = computed(() => {
   if (typeFilter.value) {
     list = list.filter(m => m.type === typeFilter.value)
   }
+  if (categoryFilter.value) {
+    list = list.filter(m => m.category === categoryFilter.value)
+  }
   return list
 })
 
@@ -86,6 +96,6 @@ const paged = computed(() => {
   return filtered.value.slice(start, start + pageSize)
 })
 
-watch([search, typeFilter], () => { page.value = 1 })
+watch([search, typeFilter, categoryFilter], () => { page.value = 1 })
 
 </script>

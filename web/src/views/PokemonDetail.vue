@@ -52,6 +52,20 @@
           <div class="info-row"><span class="info-label">颜色</span><span>{{ pokemon.color || '—' }}</span></div>
         </div>
 
+        <!-- 游戏可用性 -->
+        <div v-if="gameGroups.length" class="detail-info-block">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+            <template v-for="gg in gameGroups" :key="gg.id">
+              <GameIcon
+                v-for="sid in gg.softwareIds" :key="sid"
+                :sid="sid" :size="32"
+                :style="appearSet.has(gg.id) ? {} : { filter: 'grayscale(1) opacity(0.35)' }"
+                :title="getSoftwareName(sid)"
+              />
+            </template>
+          </div>
+        </div>
+
         <!-- 种族值 -->
         <div v-if="pokemon.stats" class="detail-info-block">
           <div style="font-size:14px;font-weight:600;margin-bottom:8px">
@@ -84,7 +98,10 @@
       <h3 class="section-toggle" @click="zukanOpen = !zukanOpen">图鉴描述 <span class="toggle-arrow" :class="{ open: zukanOpen }">▸</span></h3>
       <div v-show="zukanOpen" style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(zd, i) in pokemon.zukanDescs" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
-          <div style="font-size:12px;color:var(--accent);margin-bottom:4px">{{ zd.game }}</div>
+          <div style="font-size:12px;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:4px">
+            <GameIcon v-for="sid in zd.sids" :key="sid" :sid="sid" :size="18" />
+            <span>{{ zd.game }}</span>
+          </div>
           <div style="font-size:14px;color:var(--text2);white-space:pre-line">{{ zd.desc }}</div>
         </div>
       </div>
@@ -121,9 +138,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon } from '../data.js'
+import { getPokemon, getGameGroups, getSoftwares } from '../data.js'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
+import GameIcon from '../components/GameIcon.vue'
 
 const props = defineProps({ id: String })
 const route = useRoute()
@@ -132,10 +150,15 @@ const allPokemon = ref([])
 const pokemon = ref(null)
 const forms = ref([])
 const evoTree = ref([])
+const gameGroups = ref([])
+const softwareMap = ref({})
 const showFemale = ref(false)
 const zukanOpen = ref(true)
 const abilityOpen = ref(true)
 const evoOpen = ref(true)
+
+const appearSet = computed(() => new Set(pokemon.value?.appearGames || []))
+function getSoftwareName(sid) { return softwareMap.value[sid] || sid }
 
 function isCurrent(node) {
   return pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
@@ -207,8 +230,12 @@ function buildEvoTree(nodes, template) {
 }
 
 async function loadData() {
-  const all = await getPokemon()
+  const [all, gg, sw] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares()])
   allPokemon.value = all
+  gameGroups.value = gg
+  const swMap = {}
+  for (const s of sw) swMap[s.id] = s.name
+  softwareMap.value = swMap
   const p = all.find(x => x.id === route.params.id)
   pokemon.value = p
   showFemale.value = false
