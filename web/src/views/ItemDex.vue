@@ -15,7 +15,7 @@
           <tr v-for="item in paged" :key="item.id">
             <td style="color:var(--text2);font-size:13px">{{ item.id }}</td>
             <td><ItemIcon :src="`https://resource.pokemon-home.com/battledata/img/item/item_${String(item.id).padStart(4, '0')}.png`" :alt="item.name" /></td>
-            <td style="font-weight:600">{{ item.name }}</td>
+            <td style="font-weight:600"><a :href="`https://wiki.52poke.com/wiki/${item.name}`" target="_blank" rel="noopener" class="wiki-link">{{ item.name }}</a></td>
           </tr>
         </tbody>
       </table>

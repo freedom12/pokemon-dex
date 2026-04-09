@@ -23,7 +23,7 @@
         <tbody>
           <tr v-for="a in paged" :key="a.id">
             <td style="color:var(--text2);font-size:13px">{{ parseInt(a.id.replace(/\D/g, ''), 10) }}</td>
-            <td style="font-weight:600;white-space:nowrap">{{ a.name }}</td>
+            <td style="font-weight:600;white-space:nowrap"><a :href="`https://wiki.52poke.com/wiki/${a.name}`" target="_blank" rel="noopener" class="wiki-link">{{ a.name }}</a></td>
             <td style="font-size:13px;color:var(--text2)">{{ a.desc }}</td>
           </tr>
         </tbody>

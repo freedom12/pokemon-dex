@@ -16,8 +16,8 @@ export default createRouter({
     return { top: 0 }
   },
   routes: [
-    { path: '/', redirect: '/pokedex' },
-    { path: '/pokedex', component: Pokedex },
+    { path: '/', redirect: '/pokemons' },
+    { path: '/pokemons', component: Pokedex },
     { path: '/pokemon/:id', component: PokemonDetail, props: true },
     { path: '/moves', component: MoveDex },
     { path: '/abilities', component: AbilityDex },

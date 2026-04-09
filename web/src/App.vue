@@ -3,7 +3,7 @@
     <div class="nav-inner">
       <router-link to="/" class="nav-logo">Pokémon HOME Data</router-link>
       <div class="nav-links">
-        <router-link to="/pokedex">宝可梦</router-link>
+        <router-link to="/pokemons">宝可梦</router-link>
         <router-link to="/moves">招式</router-link>
         <router-link to="/abilities">特性</router-link>
         <router-link to="/items">道具</router-link>
@@ -19,7 +19,7 @@
   </nav>
   <div class="container">
     <router-view v-slot="{ Component }" :key="lang">
-      <keep-alive include="Pokedex">
+      <keep-alive include="Pokemons">
         <component :is="Component" />
       </keep-alive>
     </router-view>

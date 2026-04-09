@@ -2,7 +2,7 @@
   <div v-if="!pokemon" class="loading">加载中...</div>
   <template v-else>
     <div style="padding-top:12px">
-      <router-link to="/pokedex" style="font-size:13px">← 返回</router-link>
+      <router-link to="/pokemons" style="font-size:13px">← 返回</router-link>
     </div>
 
     <!-- 顶部两栏布局 -->
@@ -10,8 +10,12 @@
       <!-- 左侧：图片 + 形态 -->
       <div class="detail-top-left">
         <div class="detail-img-container">
-          <img v-if="displayImage" :src="displayImage" :alt="pokemon.name" class="detail-main-img" />
-          <PokemonIcon v-else-if="displayIcon" :src="displayIcon" :alt="pokemon.name" />
+          <a v-if="displayImage" :href="`https://wiki.52poke.com/wiki/${pokemon.name}`" target="_blank" rel="noopener">
+            <img :src="displayImage" :alt="pokemon.name" class="detail-main-img" />
+          </a>
+          <a v-else-if="displayIcon" :href="`https://wiki.52poke.com/wiki/${pokemon.name}`" target="_blank" rel="noopener">
+            <PokemonIcon :src="displayIcon" :alt="pokemon.name" />
+          </a>
         </div>
         <div v-if="forms.length > 1" class="filter-bar" style="margin-top:8px;justify-content:center;max-width:520px">
           <button v-for="f in forms" :key="f.id" class="filter-btn" :class="{ active: f.id === pokemon.id }" @click="switchForm(f)">{{ f.form || '普通' }}</button>
@@ -69,7 +73,7 @@
       <h3 class="section-toggle" @click="abilityOpen = !abilityOpen">特性 <span class="toggle-arrow" :class="{ open: abilityOpen }">▸</span></h3>
       <div v-show="abilityOpen" style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(ab, i) in pokemon.abilities" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
-          <div style="font-weight:600;font-size:14px">{{ ab.name }}</div>
+          <div style="font-weight:600;font-size:14px"><a :href="`https://wiki.52poke.com/wiki/${ab.name}`" target="_blank" rel="noopener" class="wiki-link">{{ ab.name }}</a></div>
           <div v-if="ab.desc" style="font-size:13px;color:var(--text2);margin-top:4px">{{ ab.desc }}</div>
         </div>
       </div>
