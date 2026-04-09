@@ -188,6 +188,7 @@ const displayIcon = computed(() => {
 
 const displayImage = computed(() => {
   if (!pokemon.value) return ''
+  if (showFemale.value && pokemon.value.imageFemale) return pokemon.value.imageFemale
   return pokemon.value.image || ''
 })
 
