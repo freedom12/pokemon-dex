@@ -44,17 +44,14 @@
         </tbody>
       </table>
     </div>
-    <div v-if="filtered.length > pageSize" style="text-align:center;padding:20px">
-      <button v-if="page > 1" class="filter-btn" @click="page--; scrollTop()">上一页</button>
-      <span style="margin:0 12px;font-size:13px;color:var(--text2)">{{ page }} / {{ totalPages }}</span>
-      <button v-if="page < totalPages" class="filter-btn" @click="page++; scrollTop()">下一页</button>
-    </div>
+    <Pagination v-model="page" :totalPages="totalPages" />
   </template>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { getMoves, getTypes } from '../data.js'
+import Pagination from '../components/Pagination.vue'
 
 const allMoves = ref([])
 const types = ref([])
@@ -91,5 +88,4 @@ const paged = computed(() => {
 
 watch([search, typeFilter], () => { page.value = 1 })
 
-function scrollTop() { document.documentElement.scrollTop = 0 }
 </script>
