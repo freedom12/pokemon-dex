@@ -11,7 +11,10 @@ import About from './views/About.vue'
 
 export default createRouter({
   history: createWebHashHistory(),
-  scrollBehavior() { return { top: 0 } },
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  },
   routes: [
     { path: '/', redirect: '/pokedex' },
     { path: '/pokedex', component: Pokedex },

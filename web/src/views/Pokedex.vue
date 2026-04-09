@@ -34,6 +34,7 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'Pokedex' })
 import { ref, computed, onMounted, watch } from 'vue'
 import { getPokemon, getTypes } from '../data.js'
 import PokemonCard from '../components/PokemonCard.vue'

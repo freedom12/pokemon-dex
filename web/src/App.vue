@@ -18,7 +18,11 @@
     </div>
   </nav>
   <div class="container">
-    <router-view :key="lang" />
+    <router-view v-slot="{ Component }" :key="lang">
+      <keep-alive include="Pokedex">
+        <component :is="Component" />
+      </keep-alive>
+    </router-view>
   </div>
 </template>
 
