@@ -8,7 +8,7 @@
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
         <div class="filter-bar" style="margin:0;justify-content:space-between">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="type-select" v-model="activeVg" style="padding:6px 12px;font-size:13px">
+            <select class="type-select" v-model="activeVg" style="font-size:13px">
               <option v-for="vg in availableVgs" :key="vg" :value="vg">{{ vgLabel(vg) }}</option>
             </select>
             <button v-for="tab in tabs" :key="tab.key" class="filter-btn"
