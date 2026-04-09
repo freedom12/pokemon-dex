@@ -146,7 +146,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities } from '../data.js'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE } from '../data.js'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
@@ -270,12 +270,20 @@ async function loadData() {
   if (base) {
     // 合并详情扩展数据（图鉴描述、大图、特性描述）
     const ext = descsMap[base.id] || {}
+    const ga = descsMap._g || []
     pokemon.value = {
       ...base,
-      image: ext.image || '',
-      imageFemale: ext.imageFemale || '',
-      zukanDescs: ext.zukanDescs || [],
-      abilities: base.abilities.map(a => ({ name: a.name, desc: abilityDescMap[a.name] || '' })),
+      image: ext.i ? ZUKAN_IMG_BASE + ext.i + '.png' : '',
+      imageFemale: ext.if ? ZUKAN_IMG_BASE + ext.if + '.png' : '',
+      zukanDescs: (ext.z || []).map(zd => {
+        const sids = ga[zd[0]] || []
+        return {
+          game: sids.map(sid => softwareMap.value[sid]).filter(Boolean).join(' / '),
+          sids,
+          desc: zd[1],
+        }
+      }),
+      abilities: base.abilities.map(name => ({ name, desc: abilityDescMap[name] || '' })),
     }
   } else {
     pokemon.value = base
@@ -324,7 +332,7 @@ function lookupAbility(ab) {
   const results = []
   for (const p of allPokemon.value) {
     if (p.formNo !== 0) continue
-    if (p.abilities.some(a => a.name === name) && !seen.has(p.dexNum)) {
+    if (p.abilities.includes(name) && !seen.has(p.dexNum)) {
       seen.add(p.dexNum)
       results.push(p)
     }

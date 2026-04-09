@@ -83,7 +83,7 @@ function lookupAbility(ab) {
   const results = []
   for (const p of allPokemon.value) {
     if (p.formNo !== 0) continue
-    if (p.abilities.some(a => a.name === name) && !seen.has(p.dexNum)) {
+    if (p.abilities.includes(name) && !seen.has(p.dexNum)) {
       seen.add(p.dexNum)
       results.push(p)
     }

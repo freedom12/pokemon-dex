@@ -143,6 +143,7 @@ const pokemonImageRaw = loadJson("pokemonImage.json");
 
 // 构建图片 ID → icon URL 映射
 const IMG_BASE = "https://resource.pokemon-home.com/battledata/img/pokei128/";
+const ZUKAN_IMG_PREFIX = "https://zukan.pokemon.co.jp/zukan-api/up/images/index/";
 const imageMap = {};
 const imageFemaleMap = {};
 for (const pi of pokemonImageRaw) {
@@ -383,6 +384,17 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     }
   }
 
+  // 游戏 sids 全局去重索引（跨所有宝可梦共享）
+  const gIndex = [];
+  const gMap = {};
+  function getGIdx(sids) {
+    const key = sids.join(",");
+    if (gMap[key] !== undefined) return gMap[key];
+    gMap[key] = gIndex.length;
+    gIndex.push(sids);
+    return gIndex.length - 1;
+  }
+
   function getZukanDescs(dexNum, formNo) {
     const descs = [];
     for (const g of zukanGames) {
@@ -391,11 +403,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       const textKey = `${g.file}:${g.prefix}_${dexStr}_${formStr}`;
       const desc = t(textKey);
       if (desc && desc !== textKey) {
-        descs.push({
-          game: gameNameMap[g.file] || g.label,
-          sids: gameSoftIdsMap[g.file] || [],
-          desc,
-        });
+        descs.push([getGIdx(gameSoftIdsMap[g.file] || []), desc]);
       }
     }
     return descs;
@@ -431,61 +439,38 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const imageFemale = zukanImageMap[zukanKeyFemale] || "";
     // 仅在详情页使用的扩展数据单独收集
     const ext = {};
-    if (image) ext.image = image;
-    if (imageFemale) ext.imageFemale = imageFemale;
-    if (zukanDescs.length > 0) ext.zukanDescs = zukanDescs;
+    if (image) ext.i = image.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
+    if (imageFemale) ext.if = imageFemale.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
+    if (zukanDescs.length > 0) ext.z = zukanDescs;
     if (Object.keys(ext).length) pokemonExtras[d.id] = ext;
-    pokemon.push({
+    const entry = {
       id: d.id,
-      dexNum,
-      formNo: d.formNo || 0,
-      icon,
-      iconFemale,
-      formGender: d.formGender,
+      n: dexNum,
+      fn: d.formNo || 0,
+      fg: d.formGender,
       name: nmMap[d.mdNameId] || `#${dexNum}`,
-      form: fmMap[d.mdForm] || "",
-      types: (d.mdTypeIds || []).map((tid) => ({
-        id: tid,
-        name: typeMap[tid]?.name || "",
-        color: typeMap[tid]?.color || "#999",
-      })),
-      category: ctMap[d.mdCateId] || "",
-      height: htMap[d.mdHeightId] || "",
-      weight: wtMap[d.mdWeightId] || "",
-      color: clMap[d.mdColor] || "",
-      abilities: (d.mdTokuIds || [])
-        .map((tid) =>
-          tokuseiMap[tid]
-            ? { name: tokuseiMap[tid].name }
-            : null,
-        )
-        .filter(Boolean),
-      stats: stats
-        ? {
-            hp: stats.hp,
-            atk: stats.atk,
-            def: stats.def,
-            spatk: stats.spatk,
-            spdef: stats.spdef,
-            agi: stats.agi,
-            total:
-              stats.hp +
-              stats.atk +
-              stats.def +
-              stats.spatk +
-              stats.spdef +
-              stats.agi,
-          }
-        : null,
-      evoChain,
-      evoTemplate,
-      isMega: d.isMega === 1,
-      isDMax: d.isDMax === 1,
-      isInNumberSort: d.isInNumberSort === 1,
-      appearGames: d.appearSoftwareAper || [],
-    });
+      types: (d.mdTypeIds || []).map((tid) =>
+        typeMap[tid] ? [tid, typeMap[tid].name, typeMap[tid].color] : null
+      ).filter(Boolean),
+      ab: (d.mdTokuIds || []).map((tid) => tokuseiMap[tid]?.name).filter(Boolean),
+    };
+    if (icon) entry.icon = icon.replace(IMG_BASE, "");
+    if (iconFemale) entry.icf = iconFemale.replace(IMG_BASE, "");
+    if (fmMap[d.mdForm]) entry.form = fmMap[d.mdForm];
+    if (ctMap[d.mdCateId]) entry.cat = ctMap[d.mdCateId];
+    if (htMap[d.mdHeightId]) entry.ht = htMap[d.mdHeightId];
+    if (wtMap[d.mdWeightId]) entry.wt = wtMap[d.mdWeightId];
+    if (clMap[d.mdColor]) entry.col = clMap[d.mdColor];
+    if (stats) entry.st = [stats.hp, stats.atk, stats.def, stats.spatk, stats.spdef, stats.agi];
+    if (evoChain.length > 0) entry.evo = evoChain.map((e) => [e.dexNum, e.formNo]);
+    if (evoTemplate) entry.evot = evoTemplate;
+    if (d.isMega === 1) entry.mg = 1;
+    if (d.isDMax === 1) entry.dm = 1;
+    if (d.isInNumberSort === 1) entry.ns = 1;
+    if (d.appearSoftwareAper?.length) entry.ag = d.appearSoftwareAper;
+    pokemon.push(entry);
   }
-  pokemon.sort((a, b) => a.dexNum - b.dexNum || a.formNo - b.formNo);
+  pokemon.sort((a, b) => a.n - b.n || a.fn - b.fn);
 
   // 计划/版本
   const plans = planRaw.map((p) => ({
@@ -557,7 +542,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
 
   writeFileSync(resolve(langOut, "pokemon.json"), JSON.stringify(pokemon));
-  writeFileSync(resolve(langOut, "pokemon-descs.json"), JSON.stringify(pokemonExtras));
+  writeFileSync(resolve(langOut, "pokemon-descs.json"), JSON.stringify({ _g: gIndex, ...pokemonExtras }));
   writeFileSync(resolve(langOut, "types.json"), JSON.stringify(typeList));
   writeFileSync(resolve(langOut, "moves.json"), JSON.stringify(moves));
   writeFileSync(resolve(langOut, "natures.json"), JSON.stringify(natures));

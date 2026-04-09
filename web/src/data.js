@@ -25,7 +25,42 @@ async function loadGlobal(name) {
 export const getLangs = () => loadGlobal('langs')
 export const getRibbons = (lang) => load('ribbons', lang || currentLang.value)
 
-export const getPokemon = (lang) => load('pokemon', lang || currentLang.value)
+const ICON_BASE = 'https://resource.pokemon-home.com/battledata/img/pokei128/'
+export const ZUKAN_IMG_BASE = 'https://zukan.pokemon.co.jp/zukan-api/up/images/index/'
+
+async function loadPokemon(lang) {
+  const key = `${lang}/pokemon`
+  if (cache[key]) return cache[key]
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${lang}/pokemon.json`)
+  const raw = await res.json()
+  const data = raw.map(p => ({
+    id: p.id,
+    dexNum: p.n,
+    formNo: p.fn,
+    formGender: p.fg,
+    icon: p.icon ? ICON_BASE + p.icon : '',
+    iconFemale: p.icf ? ICON_BASE + p.icf : '',
+    name: p.name,
+    form: p.form || '',
+    types: (p.types || []).map(t => ({ id: t[0], name: t[1], color: t[2] })),
+    category: p.cat || '',
+    height: p.ht || '',
+    weight: p.wt || '',
+    color: p.col || '',
+    abilities: p.ab || [],
+    stats: p.st ? { hp: p.st[0], atk: p.st[1], def: p.st[2], spatk: p.st[3], spdef: p.st[4], agi: p.st[5], total: p.st.reduce((a, b) => a + b, 0) } : null,
+    evoChain: (p.evo || []).map(e => ({ dexNum: e[0], formNo: e[1] })),
+    evoTemplate: p.evot || '',
+    isMega: !!p.mg,
+    isDMax: !!p.dm,
+    isInNumberSort: !!p.ns,
+    appearGames: p.ag || [],
+  }))
+  cache[key] = data
+  return data
+}
+
+export const getPokemon = (lang) => loadPokemon(lang || currentLang.value)
 export const getPokemonDescs = (lang) => load('pokemon-descs', lang || currentLang.value)
 export const getTypes = (lang) => load('types', lang || currentLang.value)
 export const getMoves = (lang) => load('moves', lang || currentLang.value)
