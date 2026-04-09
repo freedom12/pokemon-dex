@@ -403,6 +403,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 
   // 宝可梦
   const pokemon = [];
+  const pokemonExtras = {};
   for (const d of dictRaw) {
     const dexNum = d.dictionaryId;
     if (dexNum <= 0) continue;
@@ -428,14 +429,18 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const image = zukanImageMap[zukanKey] || "";
     const zukanKeyFemale = `${dexNum}_${d.formNo || 0}_1_${d.isDMax || 0}`;
     const imageFemale = zukanImageMap[zukanKeyFemale] || "";
+    // 仅在详情页使用的扩展数据单独收集
+    const ext = {};
+    if (image) ext.image = image;
+    if (imageFemale) ext.imageFemale = imageFemale;
+    if (zukanDescs.length > 0) ext.zukanDescs = zukanDescs;
+    if (Object.keys(ext).length) pokemonExtras[d.id] = ext;
     pokemon.push({
       id: d.id,
       dexNum,
       formNo: d.formNo || 0,
       icon,
       iconFemale,
-      image,
-      imageFemale,
       formGender: d.formGender,
       name: nmMap[d.mdNameId] || `#${dexNum}`,
       form: fmMap[d.mdForm] || "",
@@ -448,11 +453,10 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       height: htMap[d.mdHeightId] || "",
       weight: wtMap[d.mdWeightId] || "",
       color: clMap[d.mdColor] || "",
-      zukanDescs,
       abilities: (d.mdTokuIds || [])
         .map((tid) =>
           tokuseiMap[tid]
-            ? { name: tokuseiMap[tid].name, desc: tokuseiMap[tid].desc }
+            ? { name: tokuseiMap[tid].name }
             : null,
         )
         .filter(Boolean),
@@ -553,6 +557,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
 
   writeFileSync(resolve(langOut, "pokemon.json"), JSON.stringify(pokemon));
+  writeFileSync(resolve(langOut, "pokemon-descs.json"), JSON.stringify(pokemonExtras));
   writeFileSync(resolve(langOut, "types.json"), JSON.stringify(typeList));
   writeFileSync(resolve(langOut, "moves.json"), JSON.stringify(moves));
   writeFileSync(resolve(langOut, "natures.json"), JSON.stringify(natures));

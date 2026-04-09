@@ -146,7 +146,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets } from '../data.js'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities } from '../data.js'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
@@ -247,12 +247,16 @@ function buildEvoTree(nodes, template) {
 }
 
 async function loadData() {
-  const [all, gg, sw, allMoves, learnsets] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({}))])
+  const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({})), getPokemonDescs(), getAbilities()])
   allPokemon.value = all
   gameGroups.value = gg
   const swMap = {}
   for (const s of sw) swMap[s.id] = s.name
   softwareMap.value = swMap
+
+  // 构建特性名 → 描述映射
+  const abilityDescMap = {}
+  for (const a of abList) abilityDescMap[a.name] = a.desc
 
   // 构建 moveId(数字) → move 对象映射
   const mMap = {}
@@ -262,8 +266,21 @@ async function loadData() {
   }
   movesMap.value = mMap
 
-  const p = all.find(x => x.id === route.params.id)
-  pokemon.value = p
+  const base = all.find(x => x.id === route.params.id)
+  if (base) {
+    // 合并详情扩展数据（图鉴描述、大图、特性描述）
+    const ext = descsMap[base.id] || {}
+    pokemon.value = {
+      ...base,
+      image: ext.image || '',
+      imageFemale: ext.imageFemale || '',
+      zukanDescs: ext.zukanDescs || [],
+      abilities: base.abilities.map(a => ({ name: a.name, desc: abilityDescMap[a.name] || '' })),
+    }
+  } else {
+    pokemon.value = base
+  }
+  const p = pokemon.value
   showFemale.value = false
 
   // 加载当前宝可梦的可学习招式

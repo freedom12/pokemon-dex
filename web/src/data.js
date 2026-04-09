@@ -26,6 +26,7 @@ export const getLangs = () => loadGlobal('langs')
 export const getRibbons = (lang) => load('ribbons', lang || currentLang.value)
 
 export const getPokemon = (lang) => load('pokemon', lang || currentLang.value)
+export const getPokemonDescs = (lang) => load('pokemon-descs', lang || currentLang.value)
 export const getTypes = (lang) => load('types', lang || currentLang.value)
 export const getMoves = (lang) => load('moves', lang || currentLang.value)
 export const getNatures = (lang) => load('natures', lang || currentLang.value)
