@@ -8,7 +8,7 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <select class="type-select" v-model="typeFilter">
-          <option value="">全部</option>
+          <option value="">全部属性</option>
           <option v-for="ty in types" :key="ty.id" :value="ty.id">{{ ty.name }}</option>
         </select>
         <DexSelect v-model="dexFilter" :options="dexList" />

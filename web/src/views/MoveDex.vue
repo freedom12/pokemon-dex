@@ -8,11 +8,11 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <select class="type-select" v-model="typeFilter">
-          <option value="">全部</option>
+          <option value="">全部属性</option>
           <option v-for="ty in types" :key="ty.id" :value="ty.id">{{ ty.name }}</option>
         </select>
         <select class="type-select" v-model="categoryFilter">
-          <option value="">全部</option>
+          <option value="">全部分类</option>
           <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
         </select>
         <input
