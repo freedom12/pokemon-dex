@@ -38,6 +38,12 @@ const specialGenderForms = new Set([
   593, //胖嘟嘟
   668, //火炎狮
 ]);
+// todo
+const specialForms = new Set([
+  678, //超能妙喵
+  801, //玛机雅娜
+  892, //武道熊师
+]);
 for (const z of zukanList) {
   const no = parseInt(z.no, 10);
   if (z.kyodai_flg === 1) {
@@ -54,7 +60,7 @@ for (const z of zukanList) {
     if (z.sub === 1) {
       zukanImageMap[`${no}_0_1_0`] = z.image_m;
     } else {
-      zukanImageMap[`${no}_${z.sub - 1}_0_0`] = z.image_m;
+      zukanImageMap[`${no}_${z.sub-1}_0_0`] = z.image_m;
     }
   }
 }
