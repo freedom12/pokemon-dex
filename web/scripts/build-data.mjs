@@ -40,8 +40,14 @@ const specialGenderForms = new Set([
 ]);
 // todo
 const specialForms = new Set([
+  658, //甲贺忍蛙
+  666, //彩粉蝶
+  670, //花叶蒂
   678, //超能妙喵
+  718, //基格尔德
   801, //玛机雅娜
+  849, //颤弦蝾螈
+  869, //霜奶仙
   892, //武道熊师
 ]);
 for (const z of zukanList) {
@@ -60,7 +66,7 @@ for (const z of zukanList) {
     if (z.sub === 1) {
       zukanImageMap[`${no}_0_1_0`] = z.image_m;
     } else {
-      zukanImageMap[`${no}_${z.sub-1}_0_0`] = z.image_m;
+      zukanImageMap[`${no}_${z.sub - 1}_0_0`] = z.image_m;
     }
   }
 }
@@ -149,7 +155,8 @@ const pokemonImageRaw = loadJson("pokemonImage.json");
 
 // 构建图片 ID → icon URL 映射
 const IMG_BASE = "https://resource.pokemon-home.com/battledata/img/pokei128/";
-const ZUKAN_IMG_PREFIX = "https://zukan.pokemon.co.jp/zukan-api/up/images/index/";
+const ZUKAN_IMG_PREFIX =
+  "https://zukan.pokemon.co.jp/zukan-api/up/images/index/";
 const imageMap = {};
 const imageFemaleMap = {};
 for (const pi of pokemonImageRaw) {
@@ -176,6 +183,17 @@ const personalMap = {};
 for (const p of personalRaw) personalMap[p.id] = p;
 const evoMap = {};
 for (const e of evoRaw) evoMap[e.id] = e;
+
+// 预计算形态变换白名单：若某个图鉴条目的同族有 mdFormChangeDics 限制，
+// 则只保留明确列在 mdFormChangeDics 中的形态，其余剔除。
+const formChangeAllowedIds = new Set();
+const formChangeRestrictedDexNums = new Set();
+for (const d of dictRaw) {
+  if (d.mdFormChangeDics && d.mdFormChangeDics.length > 0) {
+    formChangeRestrictedDexNums.add(d.dictionaryId);
+    for (const id of d.mdFormChangeDics) formChangeAllowedIds.add(id);
+  }
+}
 
 // 奖章结构数据（不再单独输出到根目录，已按语言生成）
 
@@ -421,6 +439,12 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   for (const d of dictRaw) {
     const dexNum = d.dictionaryId;
     if (dexNum <= 0) continue;
+    // 若该图鉴号有形态变换限制，剔除不在白名单中的形态
+    if (
+      formChangeRestrictedDexNums.has(dexNum) &&
+      !formChangeAllowedIds.has(d.id)
+    )
+      continue;
     const psId = `PS${String(dexNum).padStart(4, "0")}${String(d.formNo || 0).padStart(3, "0")}`;
     const stats = personalMap[psId];
     const evo = evoMap[d.mdEvoPatId];
@@ -445,8 +469,10 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const imageFemale = zukanImageMap[zukanKeyFemale] || "";
     // 仅在详情页使用的扩展数据单独收集
     const ext = {};
-    if (image) ext.i = image.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
-    if (imageFemale) ext.if = imageFemale.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
+    if (image)
+      ext.i = image.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
+    if (imageFemale)
+      ext.if = imageFemale.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
     if (zukanDescs.length > 0) ext.z = zukanDescs;
     if (Object.keys(ext).length) pokemonExtras[d.id] = ext;
     const entry = {
@@ -455,10 +481,14 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       fn: d.formNo || 0,
       fg: d.formGender,
       name: nmMap[d.mdNameId] || `#${dexNum}`,
-      types: (d.mdTypeIds || []).map((tid) =>
-        typeMap[tid] ? [tid, typeMap[tid].name, typeMap[tid].color] : null
-      ).filter(Boolean),
-      ab: (d.mdTokuIds || []).map((tid) => tokuseiMap[tid]?.name).filter(Boolean),
+      types: (d.mdTypeIds || [])
+        .map((tid) =>
+          typeMap[tid] ? [tid, typeMap[tid].name, typeMap[tid].color] : null,
+        )
+        .filter(Boolean),
+      ab: (d.mdTokuIds || [])
+        .map((tid) => tokuseiMap[tid]?.name)
+        .filter(Boolean),
     };
     if (icon) entry.icon = icon.replace(IMG_BASE, "");
     if (iconFemale) entry.icf = iconFemale.replace(IMG_BASE, "");
@@ -467,8 +497,17 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     if (htMap[d.mdHeightId]) entry.ht = htMap[d.mdHeightId];
     if (wtMap[d.mdWeightId]) entry.wt = wtMap[d.mdWeightId];
     if (clMap[d.mdColor]) entry.col = clMap[d.mdColor];
-    if (stats) entry.st = [stats.hp, stats.atk, stats.def, stats.spatk, stats.spdef, stats.agi];
-    if (evoChain.length > 0) entry.evo = evoChain.map((e) => [e.dexNum, e.formNo]);
+    if (stats)
+      entry.st = [
+        stats.hp,
+        stats.atk,
+        stats.def,
+        stats.spatk,
+        stats.spdef,
+        stats.agi,
+      ];
+    if (evoChain.length > 0)
+      entry.evo = evoChain.map((e) => [e.dexNum, e.formNo]);
     if (evoTemplate) entry.evot = evoTemplate;
     if (d.isMega === 1) entry.mg = 1;
     if (d.isDMax === 1) entry.dm = 1;
@@ -548,7 +587,10 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
 
   writeFileSync(resolve(langOut, "pokemon.json"), JSON.stringify(pokemon));
-  writeFileSync(resolve(langOut, "pokemon-descs.json"), JSON.stringify({ _g: gIndex, ...pokemonExtras }));
+  writeFileSync(
+    resolve(langOut, "pokemon-descs.json"),
+    JSON.stringify({ _g: gIndex, ...pokemonExtras }),
+  );
   writeFileSync(resolve(langOut, "types.json"), JSON.stringify(typeList));
   writeFileSync(resolve(langOut, "moves.json"), JSON.stringify(moves));
   writeFileSync(resolve(langOut, "natures.json"), JSON.stringify(natures));
