@@ -86,12 +86,17 @@
     <div class="detail-section" v-if="pokemon.abilities.length">
       <h3 class="section-toggle" @click="abilityOpen = !abilityOpen">特性 <span class="toggle-arrow" :class="{ open: abilityOpen }">▸</span></h3>
       <div v-show="abilityOpen" style="display:flex;flex-direction:column;gap:8px">
-        <div v-for="(ab, i) in pokemon.abilities" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
-          <div style="font-weight:600;font-size:14px"><a :href="`https://wiki.52poke.com/wiki/${ab.name}`" target="_blank" rel="noopener" class="wiki-link">{{ ab.name }}</a></div>
-          <div v-if="ab.desc" style="font-size:13px;color:var(--text2);margin-top:4px">{{ ab.desc }}</div>
+        <div v-for="(ab, i) in pokemon.abilities" :key="i" class="ability-row" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px"><a :href="`https://wiki.52poke.com/wiki/${ab.name}`" target="_blank" rel="noopener" class="wiki-link">{{ ab.name }}</a></div>
+            <div v-if="ab.desc" style="font-size:13px;color:var(--text2);margin-top:4px">{{ ab.desc }}</div>
+          </div>
+          <button class="ability-lookup-btn" title="查看拥有此特性的宝可梦" @click="lookupAbility(ab)">🔍</button>
         </div>
       </div>
     </div>
+
+    <PokemonLookup :visible="abilityLookupVisible" :title="abilityLookupTitle" :pokemon="abilityLookupResults" @close="abilityLookupVisible = false" />
 
     <!-- 图鉴描述 -->
     <div class="detail-section" v-if="pokemon.zukanDescs && pokemon.zukanDescs.length">
@@ -134,7 +139,7 @@
     </div>
 
     <!-- 可学习招式 -->
-    <LearnsetPanel :learnset="learnsetData" :movesMap="movesMap" />
+    <LearnsetPanel :learnset="learnsetData" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
   </template>
 </template>
 
@@ -146,6 +151,7 @@ import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
+import PokemonLookup from '../components/PokemonLookup.vue'
 
 const props = defineProps({ id: String })
 const route = useRoute()
@@ -162,6 +168,10 @@ const abilityOpen = ref(true)
 const evoOpen = ref(true)
 const learnsetData = ref(null)
 const movesMap = ref({})
+const allLearnsets = ref({})
+const abilityLookupVisible = ref(false)
+const abilityLookupTitle = ref('')
+const abilityLookupResults = ref([])
 
 const appearSet = computed(() => new Set(pokemon.value?.appearGames || []))
 function getSoftwareName(sid) { return softwareMap.value[sid] || sid }
@@ -257,9 +267,21 @@ async function loadData() {
 
   // 加载当前宝可梦的可学习招式
   if (p && learnsets) {
-    learnsetData.value = learnsets[p.dexNum] || null
+    const speciesData = learnsets[p.dexNum]
+    if (speciesData) {
+      // 超级进化 / 超极巨化 没有独立技能表，使用基础形态的数据
+      if (p.isMega || p.isDMax) {
+        learnsetData.value = speciesData['0'] || null
+      } else {
+        learnsetData.value = speciesData[p.formNo] || speciesData['0'] || null
+      }
+    } else {
+      learnsetData.value = null
+    }
+    allLearnsets.value = learnsets
   } else {
     learnsetData.value = null
+    allLearnsets.value = {}
   }
 
   if (p) {
@@ -278,9 +300,37 @@ async function loadData() {
   }
 }
 
+function lookupAbility(ab) {
+  const name = ab.name
+  const seen = new Set()
+  const results = []
+  for (const p of allPokemon.value) {
+    if (p.formNo !== 0) continue
+    if (p.abilities.some(a => a.name === name) && !seen.has(p.dexNum)) {
+      seen.add(p.dexNum)
+      results.push(p)
+    }
+  }
+  results.sort((a, b) => a.dexNum - b.dexNum)
+  abilityLookupTitle.value = `拥有「${name}」特性的宝可梦 (${results.length})`
+  abilityLookupResults.value = results
+  abilityLookupVisible.value = true
+}
+
 function switchForm(f) { router.push(`/pokemon/${f.id}`) }
 function goTo(e) { if (e.id) router.push(`/pokemon/${e.id}`) }
 
 onMounted(loadData)
 watch(() => route.params.id, loadData)
 </script>
+
+<style scoped>
+.ability-lookup-btn {
+  opacity: 0; background: none; border: none;
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+  border-radius: 4px; transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.ability-row:hover .ability-lookup-btn { opacity: 1; }
+.ability-lookup-btn:hover { background: var(--border); }
+</style>
