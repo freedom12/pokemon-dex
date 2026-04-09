@@ -3,7 +3,7 @@
   <template v-else>
     <div class="page-header">
       <div>
-        <div class="page-title">宝可梦图鉴</div>
+        <div class="page-title">宝可梦列表</div>
         <div class="page-count">共 {{ filtered.length }} 条</div>
       </div>
       <input

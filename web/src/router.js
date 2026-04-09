@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Pokedex from './views/Pokedex.vue'
 import PokemonDetail from './views/PokemonDetail.vue'
 import MoveDex from './views/MoveDex.vue'
@@ -10,7 +10,7 @@ import RibbonDex from './views/RibbonDex.vue'
 import About from './views/About.vue'
 
 export default createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory('/pokedex/'),
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
     return { top: 0 }

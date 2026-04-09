@@ -3,7 +3,7 @@
     <div class="nav-inner">
       <router-link to="/" class="nav-logo">Pokémon HOME Data</router-link>
       <div class="nav-links">
-        <router-link to="/pokedex">图鉴</router-link>
+        <router-link to="/pokedex">宝可梦</router-link>
         <router-link to="/moves">招式</router-link>
         <router-link to="/abilities">特性</router-link>
         <router-link to="/items">道具</router-link>

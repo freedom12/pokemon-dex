@@ -2,7 +2,7 @@
   <div v-if="!pokemon" class="loading">加载中...</div>
   <template v-else>
     <div style="padding-top:12px">
-      <router-link to="/pokedex" style="font-size:13px">← 返回图鉴</router-link>
+      <router-link to="/pokedex" style="font-size:13px">← 返回</router-link>
     </div>
 
     <!-- 顶部两栏布局 -->
