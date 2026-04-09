@@ -24,6 +24,7 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th style="width:50px">#</th>
             <th>招式名称</th>
             <th>属性</th>
             <th>分类</th>
@@ -32,6 +33,7 @@
         </thead>
         <tbody>
           <tr v-for="m in paged" :key="m.id">
+            <td style="color:var(--text2);font-size:13px">{{ parseInt(m.id.replace(/\D/g, ''), 10) }}</td>
             <td style="font-weight:600;white-space:nowrap">{{ m.name }}</td>
             <td>
               <span class="type-badge" :style="{ background: m.typeColor }">{{ m.typeName }}</span>

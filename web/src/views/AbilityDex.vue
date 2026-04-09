@@ -15,12 +15,14 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th style="width:50px">#</th>
             <th style="min-width:120px">特性名称</th>
             <th>描述</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="a in paged" :key="a.id">
+            <td style="color:var(--text2);font-size:13px">{{ parseInt(a.id.replace(/\D/g, ''), 10) }}</td>
             <td style="font-weight:600;white-space:nowrap">{{ a.name }}</td>
             <td style="font-size:13px;color:var(--text2)">{{ a.desc }}</td>
           </tr>

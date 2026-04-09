@@ -3,7 +3,7 @@
   <template v-else>
     <div class="page-header">
       <div>
-        <div class="page-title">缎带 / 奖章</div>
+        <div class="page-title">奖章 / 证章</div>
         <div class="page-count">共 {{ ribbons.length }} 个</div>
       </div>
     </div>

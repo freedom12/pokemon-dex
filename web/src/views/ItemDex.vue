@@ -10,11 +10,11 @@
     </div>
     <div style="overflow-x:auto">
       <table class="data-table">
-        <thead><tr><th style="width:48px"></th><th style="width:60px">编号</th><th>名称</th></tr></thead>
+        <thead><tr><th style="width:50px">#</th><th style="width:48px"></th><th>道具名称</th></tr></thead>
         <tbody>
           <tr v-for="item in paged" :key="item.id">
+            <td style="color:var(--text2);font-size:13px">{{ item.id }}</td>
             <td><ItemIcon :src="`https://resource.pokemon-home.com/battledata/img/item/item_${String(item.id).padStart(4, '0')}.png`" :alt="item.name" /></td>
-            <td style="color:var(--text2)">#{{ item.id }}</td>
             <td style="font-weight:600">{{ item.name }}</td>
           </tr>
         </tbody>

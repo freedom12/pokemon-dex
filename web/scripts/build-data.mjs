@@ -148,7 +148,7 @@ for (const p of personalRaw) personalMap[p.id] = p
 const evoMap = {}
 for (const e of evoRaw) evoMap[e.id] = e
 
-// 缎带结构数据（不再单独输出到根目录，已按语言生成）
+// 奖章结构数据（不再单独输出到根目录，已按语言生成）
 
 // ── 为每种语言生成数据 ──
 for (const [langId, langName, folder, suffix] of LANGS) {
@@ -307,7 +307,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   const abilities = Object.values(tokuseiMap).filter(a => a.name)
   const typeList = Object.values(typeMap).sort((a, b) => a.sort - b.sort)
 
-  // 缎带（使用 ribbon_SV 文本，最完整）
+  // 奖章（使用 ribbon_SV 文本，最完整）
   const ribbons = ribbonRaw.map(r => {
     const idx = String(r.order).padStart(3, '0')
     const name = t(`ribbon_SV:mes_ribbon_name_${idx}`)

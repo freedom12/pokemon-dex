@@ -4,7 +4,7 @@
     <p>本站可视化展示 Pokémon HOME 手机版的解包数据，数据来源于以下两个开源仓库：</p>
     <div style="margin:16px 0;padding:16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
       <div style="font-weight:600;margin-bottom:4px">madatsubomi</div>
-      <p>Pokémon HOME 手机版历史 Master Data，包含宝可梦种族值、图鉴、招式、特性、性格、精灵球、缎带、成就等 96 个结构化数据表。</p>
+      <p>Pokémon HOME 手机版历史 Master Data，包含宝可梦种族值、图鉴、招式、特性、性格、精灵球、奖章、成就等 96 个结构化数据表。</p>
     </div>
     <div style="margin:16px 0;padding:16px;background:var(--card);border-radius:var(--radius);border:1px solid var(--border)">
       <div style="font-weight:600;margin-bottom:4px">megaturtle-text</div>

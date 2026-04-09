@@ -2,7 +2,7 @@
   <div v-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
-      <div class="page-title">属性一览</div>
+      <div class="page-title">属性</div>
     </div>
     <div class="type-grid">
       <div v-for="ty in types" :key="ty.id" class="type-card">

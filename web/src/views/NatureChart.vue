@@ -2,7 +2,7 @@
   <div v-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
-      <div class="page-title">性格表</div>
+      <div class="page-title">性格列表</div>
       <div class="page-count">
         <span style="color:#4ade80">↑ 增加</span>
         <span style="margin:0 8px;color:var(--text2)">/</span>
