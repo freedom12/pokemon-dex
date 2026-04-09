@@ -37,3 +37,4 @@ export const getAbilities = (lang) => load('abilities', lang || currentLang.valu
 export const getItems = (lang) => load('items', lang || currentLang.value)
 export const getDexList = (lang) => load('dexList', lang || currentLang.value)
 export const getGameGroups = () => loadGlobal('gameGroups')
+export const getLearnsets = () => loadGlobal('learnsets')

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "data": "node scripts/build-data.mjs",
+    "fetch-learnsets": "node scripts/fetch-learnsets.mjs",
     "dev": "vite",
     "build": "node scripts/build-data.mjs && vite build",
     "preview": "vite preview"

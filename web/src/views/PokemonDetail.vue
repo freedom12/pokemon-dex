@@ -132,16 +132,20 @@
         </template>
       </div>
     </div>
+
+    <!-- 可学习招式 -->
+    <LearnsetPanel :learnset="learnsetData" :movesMap="movesMap" />
   </template>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares } from '../data.js'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets } from '../data.js'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
+import LearnsetPanel from '../components/LearnsetPanel.vue'
 
 const props = defineProps({ id: String })
 const route = useRoute()
@@ -156,6 +160,8 @@ const showFemale = ref(false)
 const zukanOpen = ref(true)
 const abilityOpen = ref(true)
 const evoOpen = ref(true)
+const learnsetData = ref(null)
+const movesMap = ref({})
 
 const appearSet = computed(() => new Set(pokemon.value?.appearGames || []))
 function getSoftwareName(sid) { return softwareMap.value[sid] || sid }
@@ -230,15 +236,32 @@ function buildEvoTree(nodes, template) {
 }
 
 async function loadData() {
-  const [all, gg, sw] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares()])
+  const [all, gg, sw, allMoves, learnsets] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({}))])
   allPokemon.value = all
   gameGroups.value = gg
   const swMap = {}
   for (const s of sw) swMap[s.id] = s.name
   softwareMap.value = swMap
+
+  // 构建 moveId(数字) → move 对象映射
+  const mMap = {}
+  for (const m of allMoves) {
+    const num = parseInt(m.id.replace(/\D/g, ''), 10)
+    mMap[num] = m
+  }
+  movesMap.value = mMap
+
   const p = all.find(x => x.id === route.params.id)
   pokemon.value = p
   showFemale.value = false
+
+  // 加载当前宝可梦的可学习招式
+  if (p && learnsets) {
+    learnsetData.value = learnsets[p.dexNum] || null
+  } else {
+    learnsetData.value = null
+  }
+
   if (p) {
     forms.value = all.filter(x => x.dexNum === p.dexNum)
     if (p.evoChain.length > 0) {
