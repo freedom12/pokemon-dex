@@ -8,7 +8,8 @@
       </div>
     </div>
     <div class="card-grid">
-      <div v-for="r in ribbons" :key="r.id" class="card" style="text-align:left">
+      <div v-for="r in ribbons" :key="r.id" class="card" style="text-align:left;position:relative">
+        <div style="position:absolute;top:8px;right:10px;font-size:11px;color:var(--text2)">{{ r.id }}</div>
         <div style="font-weight:600;font-size:15px;margin-bottom:4px">{{ r.name || r.id }}</div>
         <div v-if="r.desc" style="font-size:13px;color:var(--text2)">{{ r.desc }}</div>
       </div>

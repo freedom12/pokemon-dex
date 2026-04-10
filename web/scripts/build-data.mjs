@@ -687,7 +687,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   // 奖章（使用 ribbon_SV 文本，最完整）
   const ribbons = ribbonRaw
     .map((r) => {
-      const idx = String(r.order).padStart(3, "0");
+      const idx = r.id.slice(2); // "RB000" -> "000", "RB100" -> "100"
       const name = t(`ribbon_SV:mes_ribbon_name_${idx}`);
       const desc = t(`ribbon_SV:mes_ribbon_info_${idx}`);
       return {
