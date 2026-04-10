@@ -14,7 +14,7 @@
             <img :src="displayImage" :alt="pokemon.name" class="detail-main-img" />
           </a>
           <a v-else-if="displayIcon" :href="`https://wiki.52poke.com/wiki/${pokemon.name}`" target="_blank" rel="noopener">
-            <PokemonIcon :src="displayIcon" :alt="pokemon.name" />
+            <PokemonIcon :src="displayIcon" :fallback-src="pokemon.icon" :alt="pokemon.name" />
           </a>
         </div>
         <div v-if="forms.length > 1" class="filter-bar" style="margin-top:8px;justify-content:center;max-width:520px">
@@ -41,7 +41,7 @@
               <span v-for="t in pokemon.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
             </div>
           </div>
-          <PokemonIcon :src="displayIcon" :alt="pokemon.name" :size="100" />
+          <PokemonIcon :src="displayIcon" :fallback-src="pokemon.icon" :alt="pokemon.name" :size="100" />
         </div>
 
         <!-- 基本信息 -->

@@ -15,6 +15,7 @@ const FALLBACK = import.meta.env.BASE_URL + 'img/fallback-pokemon.png'
 
 const props = defineProps({
   src: { type: String, default: '' },
+  fallbackSrc: { type: String, default: '' },
   alt: { type: String, default: '' },
   size: { type: Number, default: 128 },
 })
@@ -26,7 +27,9 @@ watch(() => props.src, (v) => {
 })
 
 function onError() {
-  if (currentSrc.value !== FALLBACK) {
+  if (currentSrc.value !== props.fallbackSrc && props.fallbackSrc) {
+    currentSrc.value = props.fallbackSrc
+  } else if (currentSrc.value !== FALLBACK) {
     currentSrc.value = FALLBACK
   }
 }
