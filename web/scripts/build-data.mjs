@@ -28,9 +28,138 @@ async function fetchZukanImages() {
 
 const zukanList = await fetchZukanImages();
 
+
+const specialZukanKeyMap = {
+  DI0201000: "", //未知图腾
+  DI0201001: "",
+  DI0201002: "",
+  DI0201003: "",
+  DI0201004: "",
+  DI0201005: "201_0",
+  DI0201006: "",
+  DI0201007: "",
+  DI0201008: "",
+  DI0201009: "",
+  DI0201010: "",
+  DI0201011: "",
+  DI0201012: "",
+  DI0201013: "",
+  DI0201014: "",
+  DI0201015: "",
+  DI0201016: "",
+  DI0201017: "",
+  DI0201018: "",
+  DI0201019: "",
+  DI0201020: "",
+  DI0201021: "",
+  DI0201022: "",
+  DI0201023: "",
+  DI0201024: "",
+  DI0201025: "",
+  DI0201026: "",
+  DI0201027: "",
+  DI0658001: "658_0", //甲贺忍蛙
+  DI0658002: "",
+  DI0658003: "658_1",
+  DI0666000: "", //彩粉蝶
+  DI0666001: "",
+  DI0666002: "",
+  DI0666003: "",
+  DI0666004: "",
+  DI0666005: "",
+  DI0666006: "666_0",
+  DI0666007: "",
+  DI0666008: "",
+  DI0666009: "",
+  DI0666010: "",
+  DI0666011: "",
+  DI0666012: "",
+  DI0666013: "",
+  DI0666014: "",
+  DI0666015: "",
+  DI0666016: "",
+  DI0666017: "",
+  DI0666018: "",
+  DI0666019: "",
+  DI0670001: "", //花叶蒂
+  DI0670002: "",
+  DI0670003: "",
+  DI0670004: "",
+  DI0670005: "670_1",
+  DI0670006: "670_2",
+  DI0678002: "678_2", //超能妙喵
+  DI0678003: "678_2",
+  DI0718004: "718_2", //基格尔德
+  DI0718005: "718_3",
+  DI0774007: "774_1", //小陨星
+  DI0801001: "", //玛机雅娜
+  DI0801002: "801_1",
+  DI0801003: "",
+  DI0849001G: "849_3", //颤弦蝾螈
+  DI0869000: "869_0", //霜奶仙
+  DI0869000k1: "",
+  DI0869000k2: "",
+  DI0869000k3: "",
+  DI0869000k4: "",
+  DI0869000k5: "",
+  DI0869000k6: "",
+  DI0869001: "",
+  DI0869001k1: "",
+  DI0869001k2: "",
+  DI0869001k3: "",
+  DI0869001k4: "",
+  DI0869001k5: "",
+  DI0869001k6: "",
+  DI0869002: "",
+  DI0869002k1: "",
+  DI0869002k2: "",
+  DI0869002k3: "",
+  DI0869002k4: "",
+  DI0869002k5: "",
+  DI0869002k6: "",
+  DI0869003: "",
+  DI0869003k1: "",
+  DI0869003k2: "",
+  DI0869003k3: "",
+  DI0869003k4: "",
+  DI0869003k5: "",
+  DI0869003k6: "",
+  DI0869004: "",
+  DI0869004k1: "",
+  DI0869004k2: "",
+  DI0869004k3: "",
+  DI0869004k4: "",
+  DI0869004k5: "",
+  DI0869004k6: "",
+  DI0869005: "",
+  DI0869005k1: "",
+  DI0869005k2: "",
+  DI0869005k3: "",
+  DI0869005k4: "",
+  DI0869005k5: "",
+  DI0869005k6: "",
+  DI0869006: "",
+  DI0869006k1: "",
+  DI0869006k2: "",
+  DI0869006k3: "",
+  DI0869006k4: "",
+  DI0869006k5: "",
+  DI0869006k6: "",
+  DI0869007: "",
+  DI0869007k1: "",
+  DI0869007k2: "",
+  DI0869007k3: "",
+  DI0869007k4: "",
+  DI0869007k5: "",
+  DI0869007k6: "",
+  DI0869000G: "869_1",
+  DI0892000G: "892_2", //武道熊师
+  DI0892001G: "892_3",
+};
 // 构建匹配映射: key → image_m
 // key 格式: "{dexNum}_{formNo}_{gender}_{isDMax}"
 const zukanImageMap = {};
+const zukanOrgImageMap = {};
 // 特例: 4 个有性别差异形态的图片（打不算形态差异）需要特殊处理
 const specialGenderForms = new Set([
   521, //高傲雉鸡
@@ -38,20 +167,9 @@ const specialGenderForms = new Set([
   593, //胖嘟嘟
   668, //火炎狮
 ]);
-// todo
-const specialForms = new Set([
-  658, //甲贺忍蛙
-  666, //彩粉蝶
-  670, //花叶蒂
-  678, //超能妙喵
-  718, //基格尔德
-  801, //玛机雅娜
-  849, //颤弦蝾螈
-  869, //霜奶仙
-  892, //武道熊师
-]);
 for (const z of zukanList) {
   const no = parseInt(z.no, 10);
+  zukanOrgImageMap[`${no}_${z.sub}`] = z.image_m;
   if (z.kyodai_flg === 1) {
     // 超极巨化: dexNum + formNo=0 + isDMax=1
     zukanImageMap[`${no}_0_0_1`] = z.image_m;
@@ -464,7 +582,10 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const icon = imageMap[d.mdPokemonImage] || "";
     const iconFemale = imageFemaleMap[d.mdPokemonImage] || "";
     const zukanKey = `${dexNum}_${d.formNo || 0}_0_${d.isDMax || 0}`;
-    const image = zukanImageMap[zukanKey] || "";
+    let image = zukanImageMap[zukanKey] || "";
+    if (specialZukanKeyMap.hasOwnProperty(d.id)) {
+      image = zukanOrgImageMap[specialZukanKeyMap[d.id]];
+    }
     const zukanKeyFemale = `${dexNum}_${d.formNo || 0}_1_${d.isDMax || 0}`;
     const imageFemale = zukanImageMap[zukanKeyFemale] || "";
     // 仅在详情页使用的扩展数据单独收集
