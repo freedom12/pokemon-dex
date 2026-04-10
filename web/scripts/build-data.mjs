@@ -279,13 +279,13 @@ const imageMap = {};
 const imageFemaleMap = {};
 for (const pi of pokemonImageRaw) {
   if (pi.dicListImage) {
-    const icon = pi.dicListImage.replace(/^cap/, "icon").replace(/_128$/, "");
+    const icon = pi.dicListImage.replace(/^cap/, "icon").replace(/_128(_\d+)?$/, "");
     imageMap[pi.id] = `${IMG_BASE}${icon}.png`;
   }
   if (pi.dicListImageFemale) {
     const icon = pi.dicListImageFemale
       .replace(/^cap/, "icon")
-      .replace(/_128$/, "");
+      .replace(/_128(_\d+)?$/, "");
     imageFemaleMap[pi.id] = `${IMG_BASE}${icon}.png`;
   }
 }
