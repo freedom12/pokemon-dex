@@ -8,10 +8,11 @@
       </div>
     </div>
     <div class="card-grid">
-      <div v-for="r in ribbons" :key="r.id" class="card" style="text-align:left;position:relative">
-        <div style="position:absolute;top:8px;right:10px;font-size:11px;color:var(--text2)">{{ r.id }}</div>
-        <div style="font-weight:600;font-size:15px;margin-bottom:4px">{{ r.name || r.id }}</div>
-        <div v-if="r.desc" style="font-size:13px;color:var(--text2)">{{ r.desc }}</div>
+      <div v-for="r in ribbons" :key="r.id" class="card ribbon-card">
+        <div class="dex-num" style="position:absolute;top:8px;left:10px">{{ r.id }}</div>
+        <img :src="iconBase + r.id + '.png'" :alt="r.name" class="ribbon-icon" @error="e => e.target.style.visibility='hidden'" />
+        <div class="name">{{ r.name || r.id }}</div>
+        <div v-if="r.desc" class="ribbon-desc">{{ r.desc }}</div>
       </div>
     </div>
   </template>
@@ -21,8 +22,32 @@
 import { ref, onMounted } from 'vue'
 import { getRibbons } from '../data.js'
 
+const iconBase = import.meta.env.BASE_URL + 'img/ribbon_icon/'
 const ribbons = ref([])
 const loaded = ref(false)
 
 onMounted(async () => { ribbons.value = await getRibbons(); loaded.value = true })
 </script>
+
+<style scoped>
+.ribbon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+.ribbon-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-top: 18px;
+}
+.ribbon-desc {
+  font-size: 13px;
+  color: var(--text2);
+  text-align: left;
+  margin-top: 4px;
+}
+</style>
