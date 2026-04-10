@@ -389,6 +389,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     type: w.mdPokemonType,
     typeName: typeMap[w.mdPokemonType]?.name || "",
     typeColor: typeMap[w.mdPokemonType]?.color || "#999",
+    categoryId: w.mdWazaCategory || "",
     category: wcMap[w.mdWazaCategory] || "",
   }));
 

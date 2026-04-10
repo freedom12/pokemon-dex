@@ -43,9 +43,9 @@
                 <a :href="`https://wiki.52poke.com/wiki/${m.name}`" target="_blank" rel="noopener" class="wiki-link">{{ m.name }}</a>
               </td>
               <td>
-                <span class="type-badge" :style="{ background: m.typeColor }">{{ m.typeName }}</span>
+                <TypeIcon :tid="m.type" :alt="m.typeName" />
               </td>
-              <td>{{ m.category }}</td>
+              <td><MoveCategoryIcon :cid="m.categoryId" :alt="m.category" :size="32" /></td>
               <td style="font-size:13px;color:var(--text2);max-width:400px">{{ m.desc }}</td>
               <td>
                 <button class="lookup-btn" title="查看可学习此招式的宝可梦" @click="lookupMove(m)">🔍</button>
@@ -68,6 +68,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
+import MoveCategoryIcon from './MoveCategoryIcon.vue'
+import TypeIcon from './TypeIcon.vue'
 
 const VG_LABELS = {
   'mega-dimension': '超级次元',

@@ -6,30 +6,25 @@
     </div>
     <div class="type-grid">
       <div v-for="ty in types" :key="ty.id" class="type-card">
-        <span class="type-badge" :style="{ background: ty.color, fontSize: '14px', padding: '4px 16px' }">
-          {{ ty.name }}
-        </span>
+        <TypeIcon :tid="ty.id" :alt="ty.name" :size="48" />
         <div style="margin-top:10px;text-align:left">
           <div v-if="ty.weakTo.length" style="margin:6px 0">
             <div style="font-size:11px;color:var(--text2);margin-bottom:3px">弱点 (2×)</div>
-            <span
-              v-for="wid in ty.weakTo" :key="wid"
-              class="type-badge" :style="{ background: typeColorMap[wid] || '#666', fontSize: '11px' }"
-            >{{ typeNameMap[wid] || wid }}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              <TypeIcon v-for="wid in ty.weakTo" :key="wid" :tid="wid" :alt="typeNameMap[wid] || wid" :size="28" />
+            </div>
           </div>
           <div v-if="ty.resistTo.length" style="margin:6px 0">
             <div style="font-size:11px;color:var(--text2);margin-bottom:3px">抵抗 (0.5×)</div>
-            <span
-              v-for="rid in ty.resistTo" :key="rid"
-              class="type-badge" :style="{ background: typeColorMap[rid] || '#666', fontSize: '11px' }"
-            >{{ typeNameMap[rid] || rid }}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              <TypeIcon v-for="rid in ty.resistTo" :key="rid" :tid="rid" :alt="typeNameMap[rid] || rid" :size="28" />
+            </div>
           </div>
           <div v-if="ty.immuneTo.length" style="margin:6px 0">
             <div style="font-size:11px;color:var(--text2);margin-bottom:3px">免疫 (0×)</div>
-            <span
-              v-for="iid in ty.immuneTo" :key="iid"
-              class="type-badge" :style="{ background: typeColorMap[iid] || '#666', fontSize: '11px' }"
-            >{{ typeNameMap[iid] || iid }}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              <TypeIcon v-for="iid in ty.immuneTo" :key="iid" :tid="iid" :alt="typeNameMap[iid] || iid" :size="28" />
+            </div>
           </div>
         </div>
       </div>
@@ -40,6 +35,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getTypes } from '../data.js'
+import TypeIcon from '../components/TypeIcon.vue'
 
 const types = ref([])
 const loaded = ref(false)

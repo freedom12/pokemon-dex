@@ -37,8 +37,10 @@
               <span v-else-if="pokemon.formGender === 2" style="font-size:18px;color:#e87d9f">♀</span>
               <span v-else-if="pokemon.formGender === 0" style="font-size:16px;color:var(--text2)">⚲</span>
             </div>
-            <div style="margin-top:8px">
-              <span v-for="t in pokemon.types" :key="t.id" class="type-badge" :style="{ background: t.color }">{{ t.name }}</span>
+            <div style="margin-top:8px;display:flex;gap:4px">
+              <span v-for="t in pokemon.types" :key="t.id">
+                <TypeIcon :tid="t.id" :alt="t.name" />
+              </span>
             </div>
           </div>
           <PokemonIcon :src="displayIcon" :fallback-src="pokemon.icon" :alt="pokemon.name" :size="100" />
@@ -150,6 +152,7 @@ import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPok
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
+import TypeIcon from '../components/TypeIcon.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 

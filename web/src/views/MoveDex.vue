@@ -38,9 +38,9 @@
             <td style="color:var(--text2);font-size:13px">{{ parseInt(m.id.replace(/\D/g, ''), 10) }}</td>
             <td style="font-weight:600;white-space:nowrap"><a :href="`https://wiki.52poke.com/wiki/${m.name}`" target="_blank" rel="noopener" class="wiki-link">{{ m.name }}</a></td>
             <td>
-              <span class="type-badge" :style="{ background: m.typeColor }">{{ m.typeName }}</span>
+              <TypeIcon :tid="m.type" :alt="m.typeName" />
             </td>
-            <td>{{ m.category }}</td>
+            <td><MoveCategoryIcon :cid="m.categoryId" :alt="m.category" :size="32" /></td>
             <td style="font-size:13px;color:var(--text2);max-width:400px">{{ m.desc }}</td>
             <td>
               <button class="lookup-btn" title="查看可学习此招式的宝可梦" @click="lookupMove(m)">🔍</button>
@@ -60,6 +60,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { getMoves, getTypes, getPokemon, getLearnsets } from '../data.js'
 import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
+import MoveCategoryIcon from '../components/MoveCategoryIcon.vue'
+import TypeIcon from '../components/TypeIcon.vue'
 
 const allMoves = ref([])
 const types = ref([])
