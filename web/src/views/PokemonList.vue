@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-defineOptions({ name: 'Pokemons' })
+defineOptions({ name: 'PokemonList' })
 import { ref, computed, onMounted, watch } from 'vue'
 import { getPokemon, getTypes, getDexList } from '../data.js'
 import PokemonCard from '../components/PokemonCard.vue'

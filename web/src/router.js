@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Pokedex from './views/Pokedex.vue'
+import PokemonList from './views/PokemonList.vue'
 import PokemonDetail from './views/PokemonDetail.vue'
-import MoveDex from './views/MoveDex.vue'
-import TypeChart from './views/TypeChart.vue'
-import NatureChart from './views/NatureChart.vue'
-import AbilityDex from './views/AbilityDex.vue'
-import ItemDex from './views/ItemDex.vue'
-import RibbonDex from './views/RibbonDex.vue'
+import MoveList from './views/MoveList.vue'
+import TypeList from './views/TypeList.vue'
+import NatureList from './views/NatureList.vue'
+import AbilityList from './views/AbilityList.vue'
+import ItemList from './views/ItemList.vue'
+import RibbonList from './views/RibbonList.vue'
 import About from './views/About.vue'
 
 export default createRouter({
@@ -17,14 +17,14 @@ export default createRouter({
   },
   routes: [
     { path: '/', redirect: '/pokemons' },
-    { path: '/pokemons', component: Pokedex },
+    { path: '/pokemons', component: PokemonList },
     { path: '/pokemon/:id', component: PokemonDetail, props: true },
-    { path: '/moves', component: MoveDex },
-    { path: '/abilities', component: AbilityDex },
-    { path: '/types', component: TypeChart },
-    { path: '/natures', component: NatureChart },
-    { path: '/items', component: ItemDex },
-    { path: '/ribbons', component: RibbonDex },
+    { path: '/moves', component: MoveList },
+    { path: '/abilities', component: AbilityList },
+    { path: '/types', component: TypeList },
+    { path: '/natures', component: NatureList },
+    { path: '/items', component: ItemList },
+    { path: '/ribbons', component: RibbonList },
     { path: '/about', component: About },
   ],
 })

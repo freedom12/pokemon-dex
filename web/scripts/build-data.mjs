@@ -694,6 +694,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
         id: r.id,
         order: r.order,
         image: r.image_a,
+        hasAlt: !!r.image_b,
         name: name || "",
         desc: desc || "",
       };
