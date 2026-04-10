@@ -20,8 +20,8 @@
     </div>
     <div class="card-grid">
       <PokemonCard
-        v-for="p in paged" :key="p.id"
-        :pokemon="p" @click="$router.push(`/pokemon/${p.id}`)"
+        v-for="g in paged" :key="g.forms[0].id"
+        :pokemonList="g.forms" @click="(p) => $router.push(`/pokemon/${p.id}`)"
       />
     </div>
     <Pagination v-model="page" :totalPages="totalPages" />
@@ -55,37 +55,46 @@ onMounted(async () => {
 })
 
 const filtered = computed(() => {
-  let list = allPokemon.value
+  let groups // Array<{ dexNum, forms: pokemon[] }>
 
   if (dexFilter.value) {
-    // 图鉴模式：按图鉴内顺序排列，保留图鉴指定的形态
+    // 图鉴模式：按图鉴内顺序排列，只包含图鉴内的形态，按 dexNum 分组
     const dex = dexList.value.find(d => d.id === dexFilter.value)
     if (dex) {
       const pokemonMap = new Map(allPokemon.value.map(p => [p.id, p]))
-      list = dex.pokemonIds.map(id => pokemonMap.get(id)).filter(Boolean)
+      const groupMap = new Map()
+      for (const id of dex.pokemonIds) {
+        const p = pokemonMap.get(id)
+        if (!p) continue
+        if (!groupMap.has(p.dexNum)) groupMap.set(p.dexNum, { dexNum: p.dexNum, forms: [] })
+        groupMap.get(p.dexNum).forms.push(p)
+      }
+      groups = [...groupMap.values()]
+    } else {
+      groups = allPokemon.value.map(p => ({ dexNum: p.dexNum, forms: [p] }))
     }
   } else {
-    // 全国图鉴模式：每个 dexNum 只保留第一个形态
-    const seen = new Set()
-    list = list.filter(p => {
-      if (seen.has(p.dexNum)) return false
-      seen.add(p.dexNum)
-      return true
-    })
+    // 全国图鉴模式：按 dexNum 分组，包含所有形态
+    const groupMap = new Map()
+    for (const p of allPokemon.value) {
+      if (!groupMap.has(p.dexNum)) groupMap.set(p.dexNum, { dexNum: p.dexNum, forms: [] })
+      groupMap.get(p.dexNum).forms.push(p)
+    }
+    groups = [...groupMap.values()]
   }
 
   if (search.value) {
     const q = search.value.toLowerCase()
-    list = list.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      String(p.dexNum).includes(q) ||
-      String(p.dexNum).padStart(4, '0').includes(q)
+    groups = groups.filter(g =>
+      g.forms.some(p => p.name.toLowerCase().includes(q)) ||
+      String(g.dexNum).includes(q) ||
+      String(g.dexNum).padStart(4, '0').includes(q)
     )
   }
   if (typeFilter.value) {
-    list = list.filter(p => p.types.some(t => t.id === typeFilter.value))
+    groups = groups.filter(g => g.forms.some(p => p.types.some(t => t.id === typeFilter.value)))
   }
-  return list
+  return groups
 })
 
 const totalPages = computed(() => Math.ceil(filtered.value.length / pageSize))
