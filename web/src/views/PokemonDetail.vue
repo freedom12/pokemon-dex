@@ -120,7 +120,7 @@
       <h3 class="section-toggle" @click="evoOpen = !evoOpen">进化链 <span class="toggle-arrow" :class="{ open: evoOpen }">▸</span></h3>
       <div v-show="evoOpen" class="evo-chain">
         <template v-for="(node, i) in evoTree" :key="i">
-          <span v-if="i > 0 && !isEvoBranch(node)" class="evo-arrow">→</span>
+          <span v-if="i > 0" class="evo-arrow">→</span>
           <!-- 分支显示 -->
           <div v-if="isEvoBranch(node)" class="evo-branch-group">
             <div class="evo-branch-col">
