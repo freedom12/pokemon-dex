@@ -171,7 +171,49 @@
                   <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
                 </div>
               </div>
-            </template>
+              <!-- 击倒对手 -->
+              <template v-if="winData">
+                <div class="stat-section-group-title">🗡️ 击倒对手时</div>
+                <div class="stat-section" v-if="winData.pokemon?.length">
+                  <div class="stat-section-title">打倒的宝可梦 TOP10</div>
+                  <div v-for="p in winData.pokemon.slice(0, 10)" :key="`w-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
+                    <PokemonIcon class="poke-icon-sm" :src="getPokemonIcon(p)" :size="28" />
+                    <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                  </div>
+                </div>
+                <div class="stat-section" v-if="winData.waza?.length">
+                  <div class="stat-section-title">击倒时所用招式 TOP10</div>
+                  <div v-for="w in winData.waza.slice(0, 10)" :key="w.id" class="stat-row-bar">
+                    <span class="stat-item-name">{{ getMoveName(w.id) }}</span>
+                    <div class="stat-bar-wrap">
+                      <div class="stat-bar-fill win-bar" :style="{width: w.val + '%'}"></div>
+                    </div>
+                    <span class="stat-pct">{{ w.val }}%</span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- 被对手击倒 -->
+              <template v-if="loseData">
+                <div class="stat-section-group-title">🛡️ 被对手击倒时</div>
+                <div class="stat-section" v-if="loseData.pokemon?.length">
+                  <div class="stat-section-title">打倒自己的宝可梦 TOP10</div>
+                  <div v-for="p in loseData.pokemon.slice(0, 10)" :key="`l-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
+                    <PokemonIcon class="poke-icon-sm" :src="getPokemonIcon(p)" :size="28" />
+                    <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                  </div>
+                </div>
+                <div class="stat-section" v-if="loseData.waza?.length">
+                  <div class="stat-section-title">对手击倒自己时所用招式 TOP10</div>
+                  <div v-for="w in loseData.waza.slice(0, 10)" :key="w.id" class="stat-row-bar">
+                    <span class="stat-item-name">{{ getMoveName(w.id) }}</span>
+                    <div class="stat-bar-wrap">
+                      <div class="stat-bar-fill lose-bar" :style="{width: w.val + '%'}"></div>
+                    </div>
+                    <span class="stat-pct">{{ w.val }}%</span>
+                  </div>
+                </div>
+              </template>            </template>
             <div v-else class="loading" style="padding:16px;color:var(--text2)">该宝可梦暂无详细数据</div>
           </div>
         </div>
@@ -367,15 +409,17 @@ function selectPokemon(item) {
 }
 
 // ─── 详情数据 ─────────────────────────────────────────────
-const temotiData = computed(() => {
+function getFormEntry() {
   if (!selectedPokemon.value || !detailData.value) return null
   const { id, form } = selectedPokemon.value
   const pokEntry = detailData.value[String(id)]
   if (!pokEntry) return null
-  const formEntry = pokEntry[String(form)]
-  if (!formEntry) return null
-  return formEntry.temoti || null
-})
+  return pokEntry[String(form)] || null
+}
+
+const temotiData = computed(() => getFormEntry()?.temoti || null)
+const winData = computed(() => getFormEntry()?.win || null)
+const loseData = computed(() => getFormEntry()?.lose || null)
 
 // ─── 宝可梦查找 ────────────────────────────────────────────
 function findPokemon(id, form) {
@@ -501,6 +545,8 @@ function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#88
 .stat-bar-fill.ability-bar { background: #5b8dd9; }
 .stat-bar-fill.nature-bar { background: #b06fd8; }
 .stat-bar-fill.tera-bar { background: #e0a030; }
+.stat-bar-fill.win-bar { background: #4cba6a; }
+.stat-bar-fill.lose-bar { background: #e05050; }
 .stat-pct { min-width: 46px; text-align: right; font-size: 12px; color: var(--text2); flex-shrink: 0; }
 
 /* ── 搭档 ── */
@@ -510,4 +556,9 @@ function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#88
   cursor: pointer; border-radius: 5px; transition: background .15s;
 }
 .teammate-row:hover { background: rgba(255,255,255,.05); }
+.stat-section-group-title {
+  font-size: 13px; font-weight: 700; margin: 16px 0 4px;
+  padding: 4px 8px; border-radius: 5px;
+  background: rgba(255,255,255,.06); color: var(--text1);
+}
 </style>
