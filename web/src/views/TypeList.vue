@@ -32,9 +32,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getTypes } from '../data.js'
+import { getTypes } from '../data'
 import TypeIcon from '../components/TypeIcon.vue'
 
 const types = ref([])

@@ -10,7 +10,7 @@
     "fetch-battle-usage-scvi": "node scripts/fetch-battle-usage-scvi.mjs",
     "fetch-battle-usage-swsh": "node scripts/fetch-battle-usage-swsh.mjs",
     "dev": "vite",
-    "build": "node scripts/build-data.mjs && vite build",
+    "build": "node scripts/build-data.mjs && vue-tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -19,6 +19,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
-    "vite": "^8.0.4"
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.4",
+    "vue-tsc": "^3.2.6"
   }
 }

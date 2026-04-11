@@ -39,9 +39,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getAbilities, getPokemon } from '../data.js'
+import { getAbilities, getPokemon } from '../data'
 import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 

@@ -262,7 +262,7 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({ name: 'BattleUsageScvi' })
 import { ref, computed, onMounted, watch } from 'vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -270,10 +270,11 @@ import TypeIcon from '../components/TypeIcon.vue'
 import ItemIcon from '../components/ItemIcon.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
-  getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail
-} from '../data.js'
+  getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
+  type BattleUsagePokemonItem
+} from '../data'
 
-const PAD4 = (n) => String(n).padStart(4, '0')
+const PAD4 = (n: number | string) => String(n).padStart(4, '0')
 
 const loaded = ref(false)
 const dataLoading = ref(false)
@@ -303,7 +304,7 @@ const internetSeasons = ref([])
 const selectedInternetCId = ref(null)
 
 // ─── 使用率数据 ────────────────────────────────────────────
-const pokemonList = ref([])
+const pokemonList = ref<BattleUsagePokemonItem[]>([])
 const detailData = ref(null)
 
 // ─── 选中宝可梦 ────────────────────────────────────────────

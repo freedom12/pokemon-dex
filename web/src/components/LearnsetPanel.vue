@@ -65,11 +65,12 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, type PropType } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
 import MoveCategoryIcon from './MoveCategoryIcon.vue'
 import TypeIcon from './TypeIcon.vue'
+import type { Pokemon } from '../data'
 
 const VG_LABELS = {
   'mega-dimension': '超级次元',
@@ -108,7 +109,7 @@ const props = defineProps({
   learnset: { type: Object, default: null }, // { vgName: { "level-up": [...], ... }, ... }
   movesMap: { type: Object, default: () => ({}) },
   allLearnsets: { type: Object, default: () => ({}) },
-  allPokemon: { type: Array, default: () => [] },
+  allPokemon: { type: Array as PropType<Pokemon[]>, default: () => [] },
 })
 
 const open = ref(true)

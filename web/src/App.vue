@@ -27,12 +27,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { currentLang, getLangs } from './data.js'
+import { currentLang, getLangs, type LangEntry } from './data'
 
 const lang = currentLang
-const langs = ref([])
+const langs = ref<LangEntry[]>([])
 
 onMounted(async () => {
   langs.value = await getLangs()

@@ -22,9 +22,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getRibbons } from '../data.js'
+import { getRibbons } from '../data'
 
 const iconBase = import.meta.env.BASE_URL + 'img/ribbon_icon/'
 const ribbons = ref([])

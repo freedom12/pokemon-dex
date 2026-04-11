@@ -32,9 +32,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getNatures } from '../data.js'
+import { getNatures } from '../data'
 
 const natures = ref([])
 const loaded = ref(false)

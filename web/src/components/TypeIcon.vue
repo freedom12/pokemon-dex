@@ -9,8 +9,9 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
+import type { CSSProperties } from 'vue'
 
 const BASE = import.meta.env.BASE_URL + 'img/type_icon/'
 
@@ -20,7 +21,7 @@ const props = defineProps({
   size: { type: Number, default: 32 },
 })
 
-const imgStyle = computed(() => ({
+const imgStyle = computed((): CSSProperties => ({
   width: props.size + 'px',
   height: props.size + 'px',
   objectFit: 'contain',

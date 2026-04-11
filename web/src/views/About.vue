@@ -46,9 +46,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getPokemon, getMoves, getTypes, getNatures, getBalls, getRegions, getSoftwares } from '../data.js'
+import { getPokemon, getMoves, getTypes, getNatures, getBalls, getRegions, getSoftwares } from '../data'
 
 const loaded = ref(false)
 const stats = ref({})

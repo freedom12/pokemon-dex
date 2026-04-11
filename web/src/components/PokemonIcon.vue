@@ -8,8 +8,9 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
+import type { CSSProperties } from 'vue'
 
 const FALLBACK = import.meta.env.BASE_URL + 'img/fallback-pokemon.png'
 
@@ -34,7 +35,7 @@ function onError() {
   }
 }
 
-const imgStyle = {
+const imgStyle: CSSProperties = {
   width: props.size + 'px',
   height: props.size + 'px',
   objectFit: 'contain',

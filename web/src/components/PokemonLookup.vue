@@ -20,7 +20,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router'
 import PokemonCard from './PokemonCard.vue'
 

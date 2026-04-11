@@ -28,17 +28,17 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineOptions({ name: 'PokemonList' })
 import { ref, computed, onMounted, watch } from 'vue'
-import { getPokemon, getTypes, getDexList } from '../data.js'
+import { getPokemon, getTypes, getDexList, type DexListEntry } from '../data'
 import PokemonCard from '../components/PokemonCard.vue'
 import DexSelect from '../components/DexSelect.vue'
 import Pagination from '../components/Pagination.vue'
 
 const allPokemon = ref([])
 const types = ref([])
-const dexList = ref([])
+const dexList = ref<DexListEntry[]>([])
 const loaded = ref(false)
 const search = ref('')
 const typeFilter = ref('')

@@ -145,10 +145,10 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE } from '../data.js'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE, type GameGroup, type Pokemon } from '../data'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
@@ -159,11 +159,11 @@ import PokemonLookup from '../components/PokemonLookup.vue'
 const props = defineProps({ id: String })
 const route = useRoute()
 const router = useRouter()
-const allPokemon = ref([])
-const pokemon = ref(null)
-const forms = ref([])
-const evoTree = ref([])
-const gameGroups = ref([])
+const allPokemon = ref<Pokemon[]>([])
+const pokemon = ref<(Pokemon & Record<string, unknown>) | null>(null)
+const forms = ref<Pokemon[]>([])
+const evoTree = ref<unknown[]>([])
+const gameGroups = ref<GameGroup[]>([])
 const softwareMap = ref({})
 const showFemale = ref(false)
 const zukanOpen = ref(true)
@@ -250,7 +250,7 @@ function buildEvoTree(nodes, template) {
 }
 
 async function loadData() {
-  const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({})), getPokemonDescs(), getAbilities()])
+  const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Record<string, Record<string, unknown>>)), getPokemonDescs(), getAbilities()])
   allPokemon.value = all
   gameGroups.value = gg
   const swMap = {}

@@ -14,14 +14,15 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, type PropType } from 'vue'
 import PokemonIcon from './PokemonIcon.vue'
 import TypeIcon from './TypeIcon.vue'
+import type { Pokemon } from '../data'
 
 const props = defineProps({
-  pokemon: { type: Object, default: null },
-  pokemonList: { type: Array, default: null },
+  pokemon: { type: Object as PropType<Pokemon>, default: null },
+  pokemonList: { type: Array as PropType<Pokemon[]>, default: null },
   highlight: { type: Boolean, default: false },
 })
 

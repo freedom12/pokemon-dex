@@ -55,9 +55,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getMoves, getTypes, getPokemon, getLearnsets } from '../data.js'
+import { getMoves, getTypes, getPokemon, getLearnsets } from '../data'
 import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 import MoveCategoryIcon from '../components/MoveCategoryIcon.vue'

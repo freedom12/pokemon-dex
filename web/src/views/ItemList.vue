@@ -24,9 +24,9 @@
   </template>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getItems } from '../data.js'
+import { getItems } from '../data'
 import ItemIcon from '../components/ItemIcon.vue'
 import Pagination from '../components/Pagination.vue'
 
