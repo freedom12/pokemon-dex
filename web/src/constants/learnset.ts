@@ -31,3 +31,22 @@ export const VG_LABELS: Record<string, string> = {
 
 /** 版本组排序（新 → 旧） */
 export const VG_ORDER = Object.keys(VG_LABELS)
+
+/** 版本组 ID → 游戏图标 Software ID 列表 */
+export const VG_ICONS: Record<string, string[]> = {
+  'mega-dimension': ['SF053'],
+  'legends-za': ['SF052'],
+  'the-indigo-disk': ['SF050', 'SF051'],
+  'the-teal-mask': ['SF050', 'SF051'],
+  'scarlet-violet': ['SF050', 'SF051'],
+  'legends-arceus': ['SF047'],
+  'brilliant-diamond-shining-pearl': ['SF048', 'SF049'],
+  'the-crown-tundra': ['SF044', 'SF045'],
+  'the-isle-of-armor': ['SF044', 'SF045'],
+  'sword-shield': ['SF044', 'SF045'],
+  'lets-go-pikachu-lets-go-eevee': ['SF042', 'SF043'],
+  'ultra-sun-ultra-moon': ['SF032', 'SF033'],
+  'sun-moon': ['SF030', 'SF031'],
+  'omega-ruby-alpha-sapphire': ['SF027', 'SF026'],
+  'x-y': ['SF024', 'SF025'],
+}

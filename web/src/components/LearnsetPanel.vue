@@ -8,9 +8,14 @@
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
         <div class="filter-bar" style="margin:0;justify-content:space-between">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select class="type-select" v-model="activeVg" style="font-size:13px">
-              <option v-for="vg in availableVgs" :key="vg" :value="vg">{{ vgLabel(vg) }}</option>
-            </select>
+            <IconSelect :modelValue="activeVg" :options="vgOptions" hidePlaceholder
+              @update:modelValue="v => activeVg = v" style="min-width:160px">
+              <template #icon="{ option }">
+                <span v-if="(option.icons as string[])?.length" style="display:inline-flex;gap:2px;align-items:center">
+                  <GameIcon v-for="sid in (option.icons as string[])" :key="sid" :sid="sid" :size="20" />
+                </span>
+              </template>
+            </IconSelect>
             <button v-for="tab in tabs" :key="tab.key" class="filter-btn"
               :class="{ active: activeTab === tab.key }" @click="activeTab = tab.key">
               {{ tab.label }} ({{ tab.count }})
@@ -70,10 +75,12 @@ import { ref, computed, watch, type PropType } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
 import MoveCategoryIcon from './MoveCategoryIcon.vue'
 import TypeIcon from './TypeIcon.vue'
+import IconSelect from './IconSelect.vue'
+import GameIcon from './GameIcon.vue'
 import type { Pokemon, MoveEntry } from '../types'
 import { usePokemonLookup } from '../composables/usePokemonLookup'
 import type { Learnsets, VgData } from '../composables/usePokemonLookup'
-import { VG_LABELS, VG_ORDER } from '../constants/learnset'
+import { VG_LABELS, VG_ORDER, VG_ICONS } from '../constants/learnset'
 
 const props = defineProps({
   learnset: { type: Object as PropType<Record<string, VgData> | null>, default: null },
@@ -96,6 +103,15 @@ const availableVgs = computed(() => {
   if (!props.learnset) return [] as string[]
   return VG_ORDER.filter(vg => props.learnset?.[vg])
 })
+
+// IconSelect 选项
+const vgOptions = computed(() =>
+  availableVgs.value.map(vg => ({
+    value: vg,
+    label: vgLabel(vg),
+    icons: VG_ICONS[vg] || [],
+  }))
+)
 
 // learnset 变化时重置版本选择
 watch(() => props.learnset, () => {
