@@ -6,6 +6,12 @@
         <div class="page-title">对战使用率</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <!-- 游戏切换 -->
+        <div class="rule-toggle">
+          <button :class="['rule-btn', currentGame === 'scvi' && 'active']" @click="switchGame('scvi')">朱/紫</button>
+          <button :class="['rule-btn', currentGame === 'swsh' && 'active']" @click="switchGame('swsh')">剑/盾</button>
+        </div>
+
         <!-- 模式切换 -->
         <div class="rule-toggle">
           <button :class="['rule-btn', mode === 'ranked' && 'active']" @click="switchMode('ranked')">级别对战</button>
@@ -250,6 +256,9 @@ const allAbilities = ref({})
 const allItems = ref({})
 const typeMap = ref({})
 
+// ─── 游戏 ─────────────────────────────────────────────────
+const currentGame = ref('scvi') // 'scvi' | 'swsh'
+
 // ─── 模式 ─────────────────────────────────────────────────
 const mode = ref('ranked') // 'ranked' | 'internet'
 
@@ -278,8 +287,8 @@ onMounted(async () => {
     getNatures(),
     getAbilities(),
     getItems(),
-    getBattleSeasons('scvi').catch(() => []),
-    getBattleTournaments('scvi').catch(() => []),
+    getBattleSeasons(currentGame.value).catch(() => []),
+    getBattleTournaments(currentGame.value).catch(() => []),
   ])
 
   allPokemon.value = pList
@@ -332,6 +341,35 @@ onMounted(async () => {
   loaded.value = true
 })
 
+// ─── 游戏切换 ─────────────────────────────────────────────
+async function switchGame(game) {
+  if (currentGame.value === game) return
+  currentGame.value = game
+  selectedPokemon.value = null
+  pokemonList.value = []
+  detailData.value = null
+  const [seasonList, internetList] = await Promise.all([
+    getBattleSeasons(game).catch(() => []),
+    getBattleTournaments(game).catch(() => []),
+  ])
+  rankedSeasons.value = seasonList
+  internetSeasons.value = internetList
+  // 默认选最新赛季
+  if (seasonList.length > 0) {
+    const maxSeason = Math.max(...seasonList.map(s => s.season))
+    selectedSeasonNo.value = maxSeason
+    const available = getAvailableRules(maxSeason)
+    selectedRule.value = available.includes(0) ? 0 : available[0]
+  }
+  if (internetList.length > 0) {
+    selectedInternetCId.value = internetList[0].cId
+  }
+  if (mode.value === 'internet' && internetList.length === 0) {
+    mode.value = 'ranked'
+  }
+  await loadSeasonData()
+}
+
 // ─── 模式切换 ─────────────────────────────────────────────
 async function switchMode(newMode) {
   if (mode.value === newMode) return
@@ -378,8 +416,8 @@ async function loadSeasonData() {
 
   try {
     const [pList, pdetail] = await Promise.all([
-      getBattleUsagePokemon('scvi', s.cId),
-      getBattleUsagePDetail('scvi', s.cId),
+      getBattleUsagePokemon(currentGame.value, s.cId),
+      getBattleUsagePDetail(currentGame.value, s.cId),
     ])
     pokemonList.value = pList || []
     detailData.value = pdetail || null
