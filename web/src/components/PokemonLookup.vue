@@ -22,12 +22,14 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { type PropType } from 'vue'
 import PokemonCard from './PokemonCard.vue'
+import type { Pokemon } from '../data'
 
 defineProps({
   visible: { type: Boolean, default: false },
   title: { type: String, default: '' },
-  pokemon: { type: Array, default: () => [] },
+  pokemon: { type: Array as PropType<Pokemon[]>, default: () => [] },
 })
 const emit = defineEmits(['close'])
 const router = useRouter()

@@ -12,7 +12,7 @@
         <div class="dex-num" style="position:absolute;top:8px;left:10px">{{ r.id }}</div>
         <div class="ribbon-img-wrap">
           <button v-if="r.hasAlt" class="ribbon-switch" @click="toggleAlt(r.id)">‹</button>
-          <img :src="imgSrc(r)" :alt="r.name" class="ribbon-icon" @error="e => e.target.style.visibility='hidden'" />
+          <img :src="imgSrc(r)" :alt="r.name" class="ribbon-icon" @error="e => (e.target as HTMLImageElement).style.visibility='hidden'" />
           <button v-if="r.hasAlt" class="ribbon-switch" @click="toggleAlt(r.id)">›</button>
         </div>
         <div class="name">{{ r.name || r.id }}</div>
@@ -26,12 +26,14 @@
 import { ref, onMounted } from 'vue'
 import { getRibbons } from '../data'
 
-const iconBase = import.meta.env.BASE_URL + 'img/ribbon_icon/'
-const ribbons = ref([])
-const loaded = ref(false)
-const altState = ref({})
+interface RibbonEntry { id: string; name: string; desc?: string; hasAlt?: boolean }
 
-onMounted(async () => { ribbons.value = await getRibbons(); loaded.value = true })
+const iconBase = import.meta.env.BASE_URL + 'img/ribbon_icon/'
+const ribbons = ref<RibbonEntry[]>([])
+const loaded = ref(false)
+const altState = ref<Record<string, boolean>>({})
+
+onMounted(async () => { ribbons.value = await getRibbons() as RibbonEntry[]; loaded.value = true })
 
 function toggleAlt(id) { altState.value[id] = !altState.value[id] }
 function imgSrc(r) { return iconBase + r.id + (r.hasAlt && altState.value[r.id] ? 'b' : '') + '.png' }

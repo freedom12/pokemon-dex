@@ -10,6 +10,7 @@
     "fetch-battle-usage-scvi": "node scripts/fetch-battle-usage-scvi.mjs",
     "fetch-battle-usage-swsh": "node scripts/fetch-battle-usage-swsh.mjs",
     "dev": "vite",
+    "typecheck": "vue-tsc --noEmit",
     "build": "node scripts/build-data.mjs && vue-tsc --noEmit && vite build",
     "preview": "vite preview"
   },

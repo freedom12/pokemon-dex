@@ -18,11 +18,11 @@
 import { ref, computed, type PropType } from 'vue'
 import PokemonIcon from './PokemonIcon.vue'
 import TypeIcon from './TypeIcon.vue'
-import type { Pokemon } from '../data'
+import type { EvoNode } from '../utils/evo'
 
 const props = defineProps({
-  pokemon: { type: Object as PropType<Pokemon>, default: null },
-  pokemonList: { type: Array as PropType<Pokemon[]>, default: null },
+  pokemon: { type: Object as PropType<EvoNode>, default: null },
+  pokemonList: { type: Array as PropType<EvoNode[]>, default: null },
   highlight: { type: Boolean, default: false },
 })
 

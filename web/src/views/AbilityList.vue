@@ -35,26 +35,26 @@
     </div>
     <Pagination v-model="page" :totalPages="totalPages" />
 
-    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="lookupVisible = false" />
+    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="closeLookup" />
   </template>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { getAbilities, getPokemon } from '../data'
+import type { Pokemon, AbilityEntry } from '../types'
+import { usePokemonLookup } from '../composables/usePokemonLookup'
 import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 
-const allAbilities = ref([])
-const allPokemon = ref([])
+const allAbilities = ref<AbilityEntry[]>([])
+const allPokemon = ref<Pokemon[]>([])
 const loaded = ref(false)
 const search = ref('')
 const page = ref(1)
 const pageSize = 50
 
-const lookupVisible = ref(false)
-const lookupTitle = ref('')
-const lookupResults = ref([])
+const { lookupVisible, lookupTitle, lookupResults, lookupByAbility, closeLookup } = usePokemonLookup()
 
 onMounted(async () => {
   const [a, p] = await Promise.all([getAbilities(), getPokemon()])
@@ -66,7 +66,7 @@ onMounted(async () => {
 const filtered = computed(() => {
   if (!search.value) return allAbilities.value
   const q = search.value.toLowerCase()
-  return allAbilities.value.filter(a => a.name.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))
+  return allAbilities.value.filter(a => a.name.toLowerCase().includes(q) || (a.desc ?? '').toLowerCase().includes(q))
 })
 
 const totalPages = computed(() => Math.ceil(filtered.value.length / pageSize))
@@ -77,21 +77,8 @@ const paged = computed(() => {
 
 watch(search, () => { page.value = 1 })
 
-function lookupAbility(ab) {
-  const name = ab.name
-  const seen = new Set()
-  const results = []
-  for (const p of allPokemon.value) {
-    if (p.formNo !== 0) continue
-    if (p.abilities.includes(name) && !seen.has(p.dexNum)) {
-      seen.add(p.dexNum)
-      results.push(p)
-    }
-  }
-  results.sort((a, b) => a.dexNum - b.dexNum)
-  lookupTitle.value = `拥有「${name}」特性的宝可梦 (${results.length})`
-  lookupResults.value = results
-  lookupVisible.value = true
+function lookupAbility(ab: AbilityEntry) {
+  lookupByAbility(ab.name, allPokemon.value)
 }
 </script>
 

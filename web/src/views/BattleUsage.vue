@@ -264,14 +264,14 @@
 
 <script setup lang="ts">
 defineOptions({ name: 'BattleUsageScvi' })
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
 import ItemIcon from '../components/ItemIcon.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
-  type BattleUsagePokemonItem
+  type BattleUsagePokemonItem, type BattleSeason, type Pokemon,
 } from '../data'
 
 const PAD4 = (n: number | string) => String(n).padStart(4, '0')
@@ -280,35 +280,50 @@ const loaded = ref(false)
 const dataLoading = ref(false)
 
 // ─── 主数据 ────────────────────────────────────────────────
-const allPokemon = ref([])
-const pokemonByDexForm = ref(new Map())
-const allMoves = ref({})
-const allNatures = ref({})
-const allAbilities = ref({})
-const allItems = ref({})
-const typeMap = ref({})
+const allPokemon = ref<Pokemon[]>([])
+const pokemonByDexForm = ref(new Map<string, Pokemon>())
+const allMoves = ref<Record<string, { name: string; type: string }>>({})
+const allNatures = ref<Record<string, { name: string; plus: string; minus: string }>>({})
+const allAbilities = ref<Record<string, string>>({})
+const allItems = ref<Record<string, string>>({})
+const typeMap = ref<Record<string, { name: string; color: string }>>({})
 
 // ─── 游戏 ─────────────────────────────────────────────────
-const currentGame = ref('scvi') // 'scvi' | 'swsh'
+const currentGame = ref<'scvi' | 'swsh'>('scvi')
 
 // ─── 模式 ─────────────────────────────────────────────────
-const mode = ref('ranked') // 'ranked' | 'internet'
+const mode = ref<'ranked' | 'internet'>('ranked')
 
 // ─── 级别对战赛季 ──────────────────────────────────────────
-const rankedSeasons = ref([])
-const selectedSeasonNo = ref(null)
+const rankedSeasons = ref<BattleSeason[]>([])
+const selectedSeasonNo = ref<number | null>(null)
 const selectedRule = ref(0)
 
 // ─── 官方大赛 ──────────────────────────────────────────────
-const internetSeasons = ref([])
-const selectedInternetCId = ref(null)
+const internetSeasons = ref<BattleSeason[]>([])
+const selectedInternetCId = ref<string | null>(null)
 
 // ─── 使用率数据 ────────────────────────────────────────────
 const pokemonList = ref<BattleUsagePokemonItem[]>([])
-const detailData = ref(null)
+const detailData = ref<Record<string, unknown> | null>(null)
 
 // ─── 选中宝可梦 ────────────────────────────────────────────
-const selectedPokemon = ref(null)
+const selectedPokemon = ref<BattleUsagePokemonItem | null>(null)
+
+// ─── 赛季列表应用（onMounted 和 switchGame 共用）────────────
+function applySeasonLists(seasonList: BattleSeason[], internetList: BattleSeason[]) {
+  rankedSeasons.value = seasonList
+  internetSeasons.value = internetList
+  if (seasonList.length > 0) {
+    const maxSeason = Math.max(...seasonList.map(s => s.season))
+    selectedSeasonNo.value = maxSeason
+    const available = getAvailableRules(maxSeason)
+    selectedRule.value = available.includes(0) ? 0 : (available[0] ?? 0)
+  }
+  if (internetList.length > 0) {
+    selectedInternetCId.value = internetList[0].cId
+  }
+}
 
 // ─── 初始化 ───────────────────────────────────────────────
 onMounted(async () => {
@@ -319,83 +334,58 @@ onMounted(async () => {
     getNatures(),
     getAbilities(),
     getItems(),
-    getBattleSeasons(currentGame.value).catch(() => []),
-    getBattleTournaments(currentGame.value).catch(() => []),
+    getBattleSeasons(currentGame.value).catch(() => [] as BattleSeason[]),
+    getBattleTournaments(currentGame.value).catch(() => [] as BattleSeason[]),
   ])
 
   allPokemon.value = pList
 
   // 跳过 Gmax/Mega 形态：它们在 SV 中不存在，且部分与本体共用 fn=0 会污染查找
-  const dexFormMap = new Map()
+  const dexFormMap = new Map<string, Pokemon>()
   for (const p of pList) {
     if (p.isDMax || p.isMega) continue
     dexFormMap.set(`${p.dexNum}_${p.formNo}`, p)
   }
   pokemonByDexForm.value = dexFormMap
 
-  const movesMap = {}
+  const movesMap: Record<string, { name: string; type: string }> = {}
   for (const m of moves) movesMap[m.id] = { name: m.name, type: m.type || '' }
   allMoves.value = movesMap
 
-  const naturesMap = {}
+  const naturesMap: Record<string, { name: string; plus: string; minus: string }> = {}
   for (const n of natures) naturesMap[n.id] = { name: n.name, plus: n.plus, minus: n.minus }
   allNatures.value = naturesMap
 
-  const abilitiesMap = {}
+  const abilitiesMap: Record<string, string> = {}
   for (const a of abilities) abilitiesMap[a.id] = a.name
   allAbilities.value = abilitiesMap
 
-  const itemsMap = {}
+  const itemsMap: Record<string, string> = {}
   for (const i of items) itemsMap[i.id] = i.name
   allItems.value = itemsMap
 
-  const typeM = {}
+  const typeM: Record<string, { name: string; color: string }> = {}
   for (const t of types) typeM[t.id] = { name: t.name, color: t.color }
   typeMap.value = typeM
 
-  rankedSeasons.value = seasonList
-  internetSeasons.value = internetList
-
-  // 默认选最新赛季
-  if (seasonList.length > 0) {
-    const maxSeason = Math.max(...seasonList.map(s => s.season))
-    selectedSeasonNo.value = maxSeason
-    const available = getAvailableRules(maxSeason)
-    selectedRule.value = available.includes(0) ? 0 : available[0]
-  }
-
-  // 默认选第一个官方大赛
-  if (internetList.length > 0) {
-    selectedInternetCId.value = internetList[0].cId
-  }
+  applySeasonLists(seasonList, internetList)
 
   await loadSeasonData()
   loaded.value = true
 })
 
 // ─── 游戏切换 ─────────────────────────────────────────────
-async function switchGame(game) {
+async function switchGame(game: 'scvi' | 'swsh') {
   if (currentGame.value === game) return
   currentGame.value = game
   selectedPokemon.value = null
   pokemonList.value = []
   detailData.value = null
   const [seasonList, internetList] = await Promise.all([
-    getBattleSeasons(game).catch(() => []),
-    getBattleTournaments(game).catch(() => []),
+    getBattleSeasons(game).catch(() => [] as BattleSeason[]),
+    getBattleTournaments(game).catch(() => [] as BattleSeason[]),
   ])
-  rankedSeasons.value = seasonList
-  internetSeasons.value = internetList
-  // 默认选最新赛季
-  if (seasonList.length > 0) {
-    const maxSeason = Math.max(...seasonList.map(s => s.season))
-    selectedSeasonNo.value = maxSeason
-    const available = getAvailableRules(maxSeason)
-    selectedRule.value = available.includes(0) ? 0 : available[0]
-  }
-  if (internetList.length > 0) {
-    selectedInternetCId.value = internetList[0].cId
-  }
+  applySeasonLists(seasonList, internetList)
   if (mode.value === 'internet' && internetList.length === 0) {
     mode.value = 'ranked'
   }
@@ -403,7 +393,7 @@ async function switchGame(game) {
 }
 
 // ─── 模式切换 ─────────────────────────────────────────────
-async function switchMode(newMode) {
+async function switchMode(newMode: 'ranked' | 'internet') {
   if (mode.value === newMode) return
   mode.value = newMode
   await loadSeasonData()
@@ -452,7 +442,7 @@ async function loadSeasonData() {
       getBattleUsagePDetail(currentGame.value, s.cId),
     ])
     pokemonList.value = pList || []
-    detailData.value = pdetail || null
+    detailData.value = (pdetail as Record<string, unknown>) || null
     // 默认选中排名第一的宝可梦
     if (pokemonList.value.length > 0) {
       selectPokemon(pokemonList.value[0])

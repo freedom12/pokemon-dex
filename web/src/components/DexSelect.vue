@@ -25,12 +25,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, type PropType } from 'vue'
 import GameIcon from './GameIcon.vue'
+import type { DexListEntry } from '../data'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  options: { type: Array, default: () => [] },
+  options: { type: Array as PropType<DexListEntry[]>, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue'])
 

@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="lookupVisible = false" />
+    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="closeLookup" />
   </div>
 </template>
 
@@ -70,40 +70,9 @@ import { ref, computed, watch, type PropType } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
 import MoveCategoryIcon from './MoveCategoryIcon.vue'
 import TypeIcon from './TypeIcon.vue'
-import type { Pokemon } from '../data'
-
-const VG_LABELS = {
-  'mega-dimension': '超级次元',
-  'legends-za': '传说 Z-A',
-  'the-indigo-disk': '零之秘宝 蓝之圆盘',
-  'the-teal-mask': '零之秘宝 碧之假面',
-  'scarlet-violet': '朱/紫',
-  'legends-arceus': '传说 阿尔宙斯',
-  'brilliant-diamond-shining-pearl': '晶灿钻石/明亮珍珠',
-  'the-crown-tundra': '冠之雪原',
-  'the-isle-of-armor': '铠之孤岛',
-  'sword-shield': '剑/盾',
-  'lets-go-pikachu-lets-go-eevee': "Let's Go 皮卡丘/伊布",
-  'ultra-sun-ultra-moon': '究极之日/究极之月',
-  'sun-moon': '太阳/月亮',
-  'omega-ruby-alpha-sapphire': '终极红宝石/始源蓝宝石',
-  'x-y': 'X/Y',
-  'black-2-white-2': '黑2/白2',
-  'black-white': '黑/白',
-  'heartgold-soulsilver': '心金/魂银',
-  'platinum': '白金',
-  'diamond-pearl': '钻石/珍珠',
-  'firered-leafgreen': '火红/叶绿',
-  'emerald': '绿宝石',
-  'ruby-sapphire': '红宝石/蓝宝石',
-  'crystal': '水晶',
-  'gold-silver': '金/银',
-  'yellow': '黄',
-  'red-blue': '红/蓝',
-}
-
-// 版本组排序（新 → 旧）
-const VG_ORDER = Object.keys(VG_LABELS)
+import type { Pokemon } from '../types'
+import { usePokemonLookup } from '../composables/usePokemonLookup'
+import { VG_LABELS, VG_ORDER } from '../constants/learnset'
 
 const props = defineProps({
   learnset: { type: Object, default: null }, // { vgName: { "level-up": [...], ... }, ... }
@@ -116,15 +85,14 @@ const open = ref(true)
 const activeVg = ref('')
 const activeTab = ref('level-up')
 const search = ref('')
-const lookupVisible = ref(false)
-const lookupTitle = ref('')
-const lookupResults = ref([])
 
-function vgLabel(vg) { return VG_LABELS[vg] || vg }
+const { lookupVisible, lookupTitle, lookupResults, lookupByMove, closeLookup } = usePokemonLookup()
+
+function vgLabel(vg: string): string { return VG_LABELS[vg] || vg }
 
 // 当前形态可用的版本组列表
 const availableVgs = computed(() => {
-  if (!props.learnset) return []
+  if (!props.learnset) return [] as string[]
   return VG_ORDER.filter(vg => props.learnset[vg])
 })
 
@@ -163,7 +131,7 @@ watch(tabs, (newTabs) => {
   }
 })
 
-function getMoveList(tabKey) {
+function getMoveList(tabKey: string) {
   if (!currentVgData.value) return []
   const data = currentVgData.value[tabKey]
   if (!data) return []
@@ -187,36 +155,12 @@ const filteredMoves = computed(() => {
 })
 
 function lookupMove(move) {
-  const moveNum = parseInt(move.id.replace(/\D/g, ''), 10)
-  const seen = new Set()
-  const results = []
-  for (const [dexNum, speciesData] of Object.entries(props.allLearnsets)) {
-    let found = false
-    for (const formData of Object.values(speciesData)) {
-      // formData 是 { vgName: { ... }, ... }
-      for (const vgData of Object.values(formData)) {
-        const allMoveIds = [
-          ...(vgData['level-up'] || []).map(e => e.move),
-          ...(vgData.machine || []),
-          ...(vgData.egg || []),
-          ...(vgData.tutor || []),
-        ]
-        if (allMoveIds.includes(moveNum)) { found = true; break }
-      }
-      if (found) break
-    }
-    if (found) {
-      const num = parseInt(dexNum, 10)
-      if (!seen.has(num)) {
-        const p = props.allPokemon.find(pk => pk.dexNum === num && pk.formNo === 0)
-        if (p) { seen.add(num); results.push(p) }
-      }
-    }
-  }
-  results.sort((a, b) => a.dexNum - b.dexNum)
-  lookupTitle.value = `可学习「${move.name}」的宝可梦 (${results.length})`
-  lookupResults.value = results
-  lookupVisible.value = true
+  lookupByMove(
+    parseInt(move.id.replace(/\D/g, ''), 10),
+    move.name,
+    props.allLearnsets,
+    props.allPokemon,
+  )
 }
 </script>
 

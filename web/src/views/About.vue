@@ -49,11 +49,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getPokemon, getMoves, getTypes, getNatures, getBalls, getRegions, getSoftwares } from '../data'
+import type { SoftwareEntry } from '../data'
+
+interface StatsData {
+  pokemon: number; moves: number; types: number
+  natures: number; balls: number; regions: number; softwares: number
+}
 
 const loaded = ref(false)
-const stats = ref({})
-const softwares = ref([])
-const regions = ref([])
+const stats = ref<StatsData>({ pokemon: 0, moves: 0, types: 0, natures: 0, balls: 0, regions: 0, softwares: 0 })
+const softwares = ref<SoftwareEntry[]>([])
+const regions = ref<{ id: string; name: string }[]>([])
 
 onMounted(async () => {
   const [p, m, t, n, b, r, s] = await Promise.all([
@@ -61,10 +67,10 @@ onMounted(async () => {
   ])
   stats.value = {
     pokemon: p.length, moves: m.length, types: t.length,
-    natures: n.length, balls: b.length, regions: r.length, softwares: s.length,
+    natures: n.length, balls: (b as unknown[]).length, regions: (r as unknown[]).length, softwares: s.length,
   }
   softwares.value = s
-  regions.value = r
+  regions.value = r as { id: string; name: string }[]
   loaded.value = true
 })
 </script>

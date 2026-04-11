@@ -98,7 +98,7 @@
       </div>
     </div>
 
-    <PokemonLookup :visible="abilityLookupVisible" :title="abilityLookupTitle" :pokemon="abilityLookupResults" @close="abilityLookupVisible = false" />
+    <PokemonLookup :visible="abilityLookupVisible" :title="abilityLookupTitle" :pokemon="abilityLookupResults" @close="closeAbilityLookup" />
 
     <!-- 图鉴描述 -->
     <div class="detail-section" v-if="pokemon.zukanDescs && pokemon.zukanDescs.length">
@@ -119,9 +119,9 @@
       <h3 class="section-toggle" @click="evoOpen = !evoOpen">进化链 <span class="toggle-arrow" :class="{ open: evoOpen }">▸</span></h3>
       <div v-show="evoOpen" class="evo-chain">
         <template v-for="(node, i) in evoTree" :key="i">
-          <span v-if="i > 0 && !node.isBranchStart" class="evo-arrow">→</span>
+          <span v-if="i > 0 && !isEvoBranch(node)" class="evo-arrow">→</span>
           <!-- 分支显示 -->
-          <div v-if="node.branches" class="evo-branch-group">
+          <div v-if="isEvoBranch(node)" class="evo-branch-group">
             <div class="evo-branch-col">
               <template v-for="(b, bi) in node.branches" :key="bi">
                 <div v-if="Array.isArray(b)" class="evo-branch-row">
@@ -135,7 +135,7 @@
             </div>
           </div>
           <!-- 普通节点 -->
-          <PokemonCard v-else :pokemon="node" :highlight="isCurrent(node)" @click="goTo(node)" />
+          <PokemonCard v-else :pokemon="(node as EvoNode)" :highlight="isCurrent(node as EvoNode)" @click="goTo(node as EvoNode)" />
         </template>
       </div>
     </div>
@@ -149,37 +149,50 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE, type GameGroup, type Pokemon } from '../data'
+import type { DetailedPokemon, ZukanDesc } from '../types'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
+import { buildEvoTree } from '../utils/evo'
+import { usePokemonLookup } from '../composables/usePokemonLookup'
+import type { EvoNode, EvoBranchNode, EvoTreeItem } from '../utils/evo'
 
 const props = defineProps({ id: String })
 const route = useRoute()
 const router = useRouter()
 const allPokemon = ref<Pokemon[]>([])
-const pokemon = ref<(Pokemon & Record<string, unknown>) | null>(null)
+const pokemon = ref<DetailedPokemon | null>(null)
 const forms = ref<Pokemon[]>([])
-const evoTree = ref<unknown[]>([])
+const evoTree = ref<ReturnType<typeof buildEvoTree>>([])
 const gameGroups = ref<GameGroup[]>([])
-const softwareMap = ref({})
+const softwareMap = ref<Record<string, string>>({})
 const showFemale = ref(false)
 const zukanOpen = ref(true)
 const abilityOpen = ref(true)
 const evoOpen = ref(true)
 const learnsetData = ref(null)
-const movesMap = ref({})
-const allLearnsets = ref({})
-const abilityLookupVisible = ref(false)
-const abilityLookupTitle = ref('')
-const abilityLookupResults = ref([])
+const movesMap = ref<Record<string, unknown>>({})
+const allLearnsets = ref<Record<string, Record<string, unknown>>>({})
+
+const {
+  lookupVisible: abilityLookupVisible,
+  lookupTitle: abilityLookupTitle,
+  lookupResults: abilityLookupResults,
+  lookupByAbility,
+  closeLookup: closeAbilityLookup,
+} = usePokemonLookup()
+
+function isEvoBranch(node: EvoTreeItem): node is EvoBranchNode {
+  return 'branches' in node
+}
 
 const appearSet = computed(() => new Set(pokemon.value?.appearGames || []))
-function getSoftwareName(sid) { return softwareMap.value[sid] || sid }
+function getSoftwareName(sid: string) { return softwareMap.value[sid] || sid }
 
-function isCurrent(node) {
+function isCurrent(node: EvoNode) {
   return pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
 }
 
@@ -212,43 +225,6 @@ function statColor(val) {
   return '#22d3ee'
 }
 
-// 根据 templatePrefab 构建进化树
-function buildEvoTree(nodes, template) {
-  if (!nodes || nodes.length <= 1) return nodes || []
-  const t = template || ''
-
-  // 伊布特殊：1 → 多分支
-  if (t.includes('Eevee')) {
-    return [nodes[0], { branches: nodes.slice(1) }]
-  }
-  // Type3B: A → (B | C)
-  if (t.includes('3B') && nodes.length === 3) {
-    return [nodes[0], { branches: [nodes[1], nodes[2]] }]
-  }
-  // Type4B: A → B → (C | D)
-  if (t.includes('4B') && nodes.length === 4) {
-    return [nodes[0], nodes[1], { branches: [nodes[2], nodes[3]] }]
-  }
-  // Type4C: A → (B | C | D)
-  if (t.includes('4C') && nodes.length === 4) {
-    return [nodes[0], { branches: [nodes[1], nodes[2], nodes[3]] }]
-  }
-  // Type4D: A → (B | C), C → D
-  if (t.includes('4D') && nodes.length === 4) {
-    return [nodes[0], { branches: [nodes[1], [nodes[2], nodes[3]]] }]
-  }
-  // Type5A: A → (B | D), B → C, D → E
-  if (t.includes('5A') && nodes.length >= 5) {
-    return [nodes[0], { branches: [[nodes[1], nodes[2]], [nodes[3], nodes[4]]] }]
-  }
-  // Type5B: A → (B | C | D), D → E
-  if (t.includes('5B') && nodes.length >= 5) {
-    return [nodes[0], { branches: [nodes[1], nodes[2], [nodes[3], nodes[4]]] }]
-  }
-  // 默认线性
-  return nodes
-}
-
 async function loadData() {
   const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Record<string, Record<string, unknown>>)), getPokemonDescs(), getAbilities()])
   allPokemon.value = all
@@ -272,14 +248,14 @@ async function loadData() {
   const base = all.find(x => x.id === route.params.id)
   if (base) {
     // 合并详情扩展数据（图鉴描述、大图、特性描述）
-    const ext = descsMap[base.id] || {}
-    const ga = descsMap._g || []
+    const ext = (descsMap[base.id] || {}) as Record<string, unknown>
+    const ga = (descsMap._g || []) as Array<string[]>
     pokemon.value = {
       ...base,
       image: ext.i ? ZUKAN_IMG_BASE + ext.i + '.png' : '',
       imageFemale: ext.if ? ZUKAN_IMG_BASE + ext.if + '.png' : '',
-      zukanDescs: (ext.z || []).map(zd => {
-        const sids = ga[zd[0]] || []
+      zukanDescs: (ext.z as Array<[number, string]> || []).map((zd): ZukanDesc => {
+        const sids: string[] = ga[zd[0]] || []
         return {
           game: sids.map(sid => softwareMap.value[sid]).filter(Boolean).join(' / '),
           sids,
@@ -287,9 +263,9 @@ async function loadData() {
         }
       }),
       abilities: base.abilities.map(name => ({ name, desc: abilityDescMap[name] || '' })),
-    }
+    } as unknown as DetailedPokemon
   } else {
-    pokemon.value = base
+    pokemon.value = null
   }
   const p = pokemon.value
   showFemale.value = false
@@ -329,21 +305,8 @@ async function loadData() {
   }
 }
 
-function lookupAbility(ab) {
-  const name = ab.name
-  const seen = new Set()
-  const results = []
-  for (const p of allPokemon.value) {
-    if (p.formNo !== 0) continue
-    if (p.abilities.includes(name) && !seen.has(p.dexNum)) {
-      seen.add(p.dexNum)
-      results.push(p)
-    }
-  }
-  results.sort((a, b) => a.dexNum - b.dexNum)
-  abilityLookupTitle.value = `拥有「${name}」特性的宝可梦 (${results.length})`
-  abilityLookupResults.value = results
-  abilityLookupVisible.value = true
+function lookupAbility(ab: { name: string }) {
+  lookupByAbility(ab.name, allPokemon.value)
 }
 
 function switchForm(f) { router.push(`/pokemon/${f.id}`) }

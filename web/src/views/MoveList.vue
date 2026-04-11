@@ -51,22 +51,25 @@
     </div>
     <Pagination v-model="page" :totalPages="totalPages" />
 
-    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="lookupVisible = false" />
+    <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="closeLookup" />
   </template>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { getMoves, getTypes, getPokemon, getLearnsets } from '../data'
+import type { Pokemon, MoveEntry, TypeEntry } from '../types'
+import { usePokemonLookup } from '../composables/usePokemonLookup'
+import type { Learnsets } from '../composables/usePokemonLookup'
 import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 import MoveCategoryIcon from '../components/MoveCategoryIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
 
-const allMoves = ref([])
-const types = ref([])
-const allPokemon = ref([])
-const allLearnsets = ref({})
+const allMoves = ref<MoveEntry[]>([])
+const types = ref<TypeEntry[]>([])
+const allPokemon = ref<Pokemon[]>([])
+const allLearnsets = ref<Learnsets>({})
 const loaded = ref(false)
 const search = ref('')
 const typeFilter = ref('')
@@ -74,16 +77,14 @@ const categoryFilter = ref('')
 const page = ref(1)
 const pageSize = 50
 
-const lookupVisible = ref(false)
-const lookupTitle = ref('')
-const lookupResults = ref([])
+const { lookupVisible, lookupTitle, lookupResults, lookupByMove, closeLookup } = usePokemonLookup()
 
 onMounted(async () => {
   const [m, t, p, ls] = await Promise.all([getMoves(), getTypes(), getPokemon(), getLearnsets().catch(() => ({}))])
   allMoves.value = m
   types.value = t
   allPokemon.value = p
-  allLearnsets.value = ls
+  allLearnsets.value = ls as Learnsets
   loaded.value = true
 })
 
@@ -115,36 +116,13 @@ const paged = computed(() => {
 
 watch([search, typeFilter, categoryFilter], () => { page.value = 1 })
 
-function lookupMove(move) {
-  const moveNum = parseInt(move.id.replace(/\D/g, ''), 10)
-  const seen = new Set()
-  const results = []
-  for (const [dexNum, speciesData] of Object.entries(allLearnsets.value)) {
-    let found = false
-    for (const formData of Object.values(speciesData)) {
-      for (const vgData of Object.values(formData)) {
-        const allMoveIds = [
-          ...(vgData['level-up'] || []).map(e => e.move),
-          ...(vgData.machine || []),
-          ...(vgData.egg || []),
-          ...(vgData.tutor || []),
-        ]
-        if (allMoveIds.includes(moveNum)) { found = true; break }
-      }
-      if (found) break
-    }
-    if (found) {
-      const num = parseInt(dexNum, 10)
-      if (!seen.has(num)) {
-        const p = allPokemon.value.find(pk => pk.dexNum === num && pk.formNo === 0)
-        if (p) { seen.add(num); results.push(p) }
-      }
-    }
-  }
-  results.sort((a, b) => a.dexNum - b.dexNum)
-  lookupTitle.value = `可学习「${move.name}」的宝可梦 (${results.length})`
-  lookupResults.value = results
-  lookupVisible.value = true
+function lookupMove(m: MoveEntry) {
+  lookupByMove(
+    parseInt(m.id.replace(/\D/g, ''), 10),
+    m.name,
+    allLearnsets.value,
+    allPokemon.value,
+  )
 }
 </script>
 
