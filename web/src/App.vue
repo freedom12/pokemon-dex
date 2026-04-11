@@ -1,7 +1,7 @@
 <template>
   <nav class="nav">
     <div class="nav-inner">
-      <router-link to="/" class="nav-logo">Pokémon HOME Data</router-link>
+      <router-link to="/" class="nav-logo">Pokémon Dex</router-link>
       <div class="nav-links">
         <router-link to="/pokemons">宝可梦</router-link>
         <router-link to="/moves">招式</router-link>
