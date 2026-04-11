@@ -8,22 +8,18 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <!-- 游戏切换 -->
-        <div class="rule-toggle">
-          <button :class="['rule-btn', currentGame === 'scvi' && 'active']" @click="switchGame('scvi')">朱/紫</button>
-          <button :class="['rule-btn', currentGame === 'swsh' && 'active']" @click="switchGame('swsh')">剑/盾</button>
-        </div>
+        <IconSelect :modelValue="currentGame" :options="gameOptions" hidePlaceholder @update:modelValue="switchGame($event as 'scvi' | 'swsh')">
+          <template #icon="{ option }">
+            <GameIcon v-for="sid in (option as any).icons" :key="sid" :sid="sid" :size="20" />
+          </template>
+        </IconSelect>
 
         <!-- 模式切换 -->
-        <div class="rule-toggle">
-          <button :class="['rule-btn', mode === 'ranked' && 'active']" @click="switchMode('ranked')">级别对战</button>
-          <button :class="['rule-btn', mode === 'internet' && 'active']" @click="switchMode('internet')">官方大赛</button>
-        </div>
+        <IconSelect :modelValue="mode" :options="modeOptions" hidePlaceholder @update:modelValue="switchMode($event as 'ranked' | 'internet')" />
 
         <!-- 级别对战：赛季选择 -->
         <template v-if="mode === 'ranked'">
-          <select class="type-select" v-model="selectedSeasonNo" @change="onSeasonChange">
-            <option v-for="s in seasonOptions" :key="s.value" :value="s.value">{{ s.label }}</option>
-          </select>
+          <IconSelect :modelValue="String(selectedSeasonNo ?? '')" :options="seasonSelectOptions" hidePlaceholder @update:modelValue="onSeasonSelect($event)" />
           <div class="rule-toggle">
             <button :class="['rule-btn', selectedRule === 0 && 'active']" @click="selectRule(0)" :disabled="!hasRule(0)">单打</button>
             <button :class="['rule-btn', selectedRule === 1 && 'active']" @click="selectRule(1)" :disabled="!hasRule(1)">双打</button>
@@ -32,11 +28,7 @@
 
         <!-- 官方大赛：赛事选择 -->
         <template v-else>
-          <select class="type-select internet-select" v-model="selectedInternetCId" @change="loadSeasonData">
-            <option v-for="t in internetSeasons" :key="t.cId" :value="t.cId">
-              {{ t.name }}{{ t.subname ? ' · ' + t.subname : '' }}
-            </option>
-          </select>
+          <IconSelect :modelValue="selectedInternetCId ?? ''" :options="internetSelectOptions" hidePlaceholder @update:modelValue="onInternetSelect($event)" />
         </template>
       </div>
     </div>
@@ -290,6 +282,8 @@ import { ref, computed, onMounted } from 'vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
 import ItemIcon from '../components/ItemIcon.vue'
+import GameIcon from '../components/GameIcon.vue'
+import IconSelect from '../components/IconSelect.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
@@ -302,6 +296,16 @@ const PAD4 = (n: number | string) => String(n).padStart(4, '0')
 const loaded = ref(false)
 const dataLoading = ref(false)
 const error = ref('')
+
+const gameOptions = [
+  { value: 'scvi', label: '朱/紫', icons: ['SF050', 'SF051'] },
+  { value: 'swsh', label: '剑/盾', icons: ['SF044', 'SF045'] },
+]
+
+const modeOptions = [
+  { value: 'ranked', label: '级别对战' },
+  { value: 'internet', label: '官方大赛' },
+]
 
 // ─── 主数据 ────────────────────────────────────────────────
 const allPokemon = ref<Pokemon[]>([])
@@ -436,6 +440,17 @@ const seasonOptions = computed(() => {
   return nums.map(n => ({ value: n, label: `S${n} 赛季` }))
 })
 
+const seasonSelectOptions = computed(() =>
+  seasonOptions.value.map(s => ({ value: String(s.value), label: s.label }))
+)
+
+const internetSelectOptions = computed(() =>
+  internetSeasons.value.map(t => ({
+    value: t.cId,
+    label: t.name + (t.subname ? ' · ' + t.subname : ''),
+  }))
+)
+
 function getAvailableRules(seasonNo: number | null): number[] {
   return rankedSeasons.value.filter(s => s.season === seasonNo).map(s => s.rule)
 }
@@ -489,6 +504,16 @@ async function loadSeasonData() {
 function onSeasonChange() {
   const rules = getAvailableRules(selectedSeasonNo.value)
   if (!rules.includes(selectedRule.value)) selectedRule.value = rules[0] ?? 0
+  loadSeasonData()
+}
+
+function onSeasonSelect(val: string) {
+  selectedSeasonNo.value = Number(val)
+  onSeasonChange()
+}
+
+function onInternetSelect(val: string) {
+  selectedInternetCId.value = val
   loadSeasonData()
 }
 
@@ -562,10 +587,10 @@ function getTypeName(id: number | string): string { return typeMap.value[`TY${PA
 }
 
 /* ── 规则切换 ── */
-.rule-toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.rule-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .rule-btn {
-  padding: 5px 14px; background: transparent; border: none;
-  color: var(--text2); font-size: 14px; cursor: pointer; transition: all .2s;
+  padding: 10px 16px; background: transparent; border: none;
+  color: var(--text2); font-size: 15px; cursor: pointer; transition: all .2s;
 }
 .rule-btn.active { background: var(--bg3); color: #fff; }
 .rule-btn:disabled { opacity: .4; cursor: not-allowed; }

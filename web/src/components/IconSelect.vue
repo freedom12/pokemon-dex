@@ -9,7 +9,7 @@
       <span class="icon-select-arrow">▾</span>
     </button>
     <ul v-if="open" class="icon-select-list">
-      <li class="icon-select-item" :class="{ active: !modelValue }" @click="pick('')">
+      <li v-if="!hidePlaceholder" class="icon-select-item" :class="{ active: !modelValue }" @click="pick('')">
         {{ placeholder }}
       </li>
       <li
@@ -37,6 +37,7 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
   options: { type: Array as PropType<IconSelectOption[]>, default: () => [] },
   placeholder: { type: String, default: '全部' },
+  hidePlaceholder: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update:modelValue'])
 
