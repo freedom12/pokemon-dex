@@ -29,8 +29,8 @@
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <span
           v-for="s in softwares" :key="s.id"
-          class="type-badge" style="background:var(--bg3)"
-        >{{ s.name }}</span>
+          class="type-badge" style="background:var(--bg3);display:inline-flex;align-items:center;gap:4px"
+        ><GameIcon :sid="s.id" :alt="s.name" :size="18" />{{ s.name }}</span>
       </div>
     </div>
 
@@ -39,8 +39,8 @@
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <span
           v-for="r in regions" :key="r.id"
-          class="type-badge" style="background:var(--bg3)"
-        >{{ r.name }}</span>
+          class="type-badge" style="background:var(--bg3);display:inline-flex;align-items:center;gap:4px"
+        ><RegionIcon :rid="r.id" :alt="r.name" :size="18" />{{ r.name }}</span>
       </div>
     </div>
   </div>
@@ -51,6 +51,8 @@ defineOptions({ name: 'AboutPage' })
 import { ref, onMounted } from 'vue'
 import { getPokemon, getMoves, getTypes, getNatures, getBalls, getRegions, getSoftwares } from '../data'
 import type { SoftwareEntry } from '../data'
+import RegionIcon from '../components/RegionIcon.vue'
+import GameIcon from '../components/GameIcon.vue'
 
 interface StatsData {
   pokemon: number; moves: number; types: number
