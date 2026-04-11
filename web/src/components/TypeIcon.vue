@@ -1,7 +1,7 @@
 <template>
   <img
     v-if="tid"
-    :src="`${BASE}${tid}.png`"
+    :src="`${BASE}${resolvedTid}.png`"
     :alt="alt"
     :title="alt"
     :style="imgStyle"
@@ -19,6 +19,14 @@ const props = defineProps({
   tid: { type: String, default: '' },
   alt: { type: String, default: '' },
   size: { type: Number, default: 32 },
+  tera: { type: Boolean, default: false },
+})
+
+const resolvedTid = computed(() => {
+  if (props.tera && props.tid.startsWith('TY')) {
+    return 'GT' + props.tid.slice(2)
+  }
+  return props.tid
 })
 
 const imgStyle = computed((): CSSProperties => ({

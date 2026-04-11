@@ -173,7 +173,7 @@
                 <div class="stat-section-title">太晶属性</div>
                 <div v-for="t in temotiData.terastal.slice(0, 10)" :key="t.id" class="stat-row-bar">
                   <span class="stat-item-name">
-                    <TypeIcon :tid="'TY' + PAD4(t.id)" :alt="getTypeName(t.id)" :size="24" />
+                    <TypeIcon :tid="'TY' + PAD4(t.id)" :alt="getTypeName(t.id)" :size="24" tera />
                   </span>
                   <div class="stat-bar-wrap">
                     <div class="stat-bar-fill tera-bar" :style="{width: t.val + '%'}"></div>
