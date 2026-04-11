@@ -1,14 +1,9 @@
 /** 版本组 ID → 中文显示名称 */
 export const VG_LABELS: Record<string, string> = {
-  'mega-dimension': '超级次元',
   'legends-za': '传说 Z-A',
-  'the-indigo-disk': '零之秘宝 蓝之圆盘',
-  'the-teal-mask': '零之秘宝 碧之假面',
   'scarlet-violet': '朱/紫',
   'legends-arceus': '传说 阿尔宙斯',
   'brilliant-diamond-shining-pearl': '晶灿钻石/明亮珍珠',
-  'the-crown-tundra': '冠之雪原',
-  'the-isle-of-armor': '铠之孤岛',
   'sword-shield': '剑/盾',
   'lets-go-pikachu-lets-go-eevee': "Let's Go 皮卡丘/伊布",
   'ultra-sun-ultra-moon': '究极之日/究极之月',
@@ -34,15 +29,10 @@ export const VG_ORDER = Object.keys(VG_LABELS)
 
 /** 版本组 ID → 游戏图标 Software ID 列表 */
 export const VG_ICONS: Record<string, string[]> = {
-  'mega-dimension': ['SF053'],
   'legends-za': ['SF052'],
-  'the-indigo-disk': ['SF050', 'SF051'],
-  'the-teal-mask': ['SF050', 'SF051'],
   'scarlet-violet': ['SF050', 'SF051'],
   'legends-arceus': ['SF047'],
   'brilliant-diamond-shining-pearl': ['SF048', 'SF049'],
-  'the-crown-tundra': ['SF044', 'SF045'],
-  'the-isle-of-armor': ['SF044', 'SF045'],
   'sword-shield': ['SF044', 'SF045'],
   'lets-go-pikachu-lets-go-eevee': ['SF042', 'SF043'],
   'ultra-sun-ultra-moon': ['SF032', 'SF033'],

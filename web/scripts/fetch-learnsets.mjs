@@ -47,13 +47,10 @@ const KEEP_VGS = new Set([
   'sun-moon', 'ultra-sun-ultra-moon',
   'lets-go-pikachu-lets-go-eevee',
   'sword-shield',
-  'the-isle-of-armor', 'the-crown-tundra',
   'brilliant-diamond-shining-pearl',
   'legends-arceus',
   'scarlet-violet',
-  'the-teal-mask', 'the-indigo-disk',
   'legends-za',
-  'mega-dimension',
 ])
 
 let result = {}
