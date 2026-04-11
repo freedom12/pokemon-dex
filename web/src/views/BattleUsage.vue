@@ -111,7 +111,10 @@
               <div class="stat-section" v-if="temotiData.waza?.length">
                 <div class="stat-section-title">招式</div>
                 <div v-for="w in temotiData.waza.slice(0, 10)" :key="w.id" class="stat-row-bar">
-                  <span class="stat-item-name">{{ getMoveName(w.id) }}</span>
+                  <span class="stat-item-name">
+                    <TypeIcon v-if="getMoveType(w.id)" :tid="getMoveType(w.id)" :size="20" style="flex-shrink:0" />
+                    {{ getMoveName(w.id) }}
+                  </span>
                   <div class="stat-bar-wrap">
                     <div class="stat-bar-fill" :style="{width: w.val + '%'}"></div>
                   </div>
@@ -123,7 +126,10 @@
               <div class="stat-section" v-if="temotiData.motimono?.length">
                 <div class="stat-section-title">道具</div>
                 <div v-for="m in temotiData.motimono.slice(0, 10)" :key="m.id" class="stat-row-bar">
-                  <span class="stat-item-name">{{ getItemName(m.id) }}</span>
+                  <span class="stat-item-name">
+                    <img :src="getItemIcon(m.id)" class="item-icon" />
+                    {{ getItemName(m.id) }}
+                  </span>
                   <div class="stat-bar-wrap">
                     <div class="stat-bar-fill item-bar" :style="{width: m.val + '%'}"></div>
                   </div>
@@ -190,7 +196,10 @@
                 <div class="stat-section" v-if="winData.waza?.length">
                   <div class="stat-section-title">击倒时所用招式 TOP10</div>
                   <div v-for="w in winData.waza.slice(0, 10)" :key="w.id" class="stat-row-bar">
-                    <span class="stat-item-name">{{ getMoveName(w.id) }}</span>
+                    <span class="stat-item-name">
+                      <TypeIcon v-if="getMoveType(w.id)" :tid="getMoveType(w.id)" :size="20" style="flex-shrink:0" />
+                      {{ getMoveName(w.id) }}
+                    </span>
                     <div class="stat-bar-wrap">
                       <div class="stat-bar-fill win-bar" :style="{width: w.val + '%'}"></div>
                     </div>
@@ -212,7 +221,10 @@
                 <div class="stat-section" v-if="loseData.waza?.length">
                   <div class="stat-section-title">对手击倒自己时所用招式 TOP10</div>
                   <div v-for="w in loseData.waza.slice(0, 10)" :key="w.id" class="stat-row-bar">
-                    <span class="stat-item-name">{{ getMoveName(w.id) }}</span>
+                    <span class="stat-item-name">
+                      <TypeIcon v-if="getMoveType(w.id)" :tid="getMoveType(w.id)" :size="20" style="flex-shrink:0" />
+                      {{ getMoveName(w.id) }}
+                    </span>
                     <div class="stat-bar-wrap">
                       <div class="stat-bar-fill lose-bar" :style="{width: w.val + '%'}"></div>
                     </div>
@@ -302,7 +314,7 @@ onMounted(async () => {
   pokemonByDexForm.value = dexFormMap
 
   const movesMap = {}
-  for (const m of moves) movesMap[m.id] = m.name
+  for (const m of moves) movesMap[m.id] = { name: m.name, type: m.type || '' }
   allMoves.value = movesMap
 
   const naturesMap = {}
@@ -472,8 +484,10 @@ function getPokemonFormName(item) { return findPokemon(item.id, item.form)?.form
 function getTypeNames(item) { return findPokemon(item.id, item.form)?.types || [] }
 
 // ─── ID 转名称 ────────────────────────────────────────────
-function getMoveName(id) { return allMoves.value[`WZ${PAD4(id)}`] || `招式#${id}` }
+function getMoveName(id) { return allMoves.value[`WZ${PAD4(id)}`]?.name || `招式#${id}` }
+function getMoveType(id) { return allMoves.value[`WZ${PAD4(id)}`]?.type || '' }
 function getItemName(id) { return allItems.value[parseInt(id)] || `道具#${id}` }
+function getItemIcon(id) { return `https://resource.pokemon-home.com/battledata/img/item/item_${PAD4(id)}.png` }
 function getAbilityName(id) { return allAbilities.value[`TK${PAD4(id)}`] || `特性#${id}` }
 function getNatureName(id) { return allNatures.value[`PE${PAD4(id)}`] || `性格#${id}` }
 function getTypeName(id) { return typeMap.value[`TY${PAD4(id)}`]?.name || `属性#${id}` }
@@ -576,7 +590,8 @@ function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#88
   display: flex; align-items: center; gap: 8px;
   margin: 5px 0; font-size: 13px;
 }
-.stat-item-name { min-width: 100px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.stat-item-name { min-width: 100px; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.item-icon { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; image-rendering: pixelated; }
 .stat-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
 .stat-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
 .stat-bar-fill.item-bar { background: #4caf88; }
