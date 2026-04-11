@@ -39,7 +39,7 @@ onMounted(async () => {
   try {
     ribbons.value = await getRibbons() as RibbonEntry[]
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })

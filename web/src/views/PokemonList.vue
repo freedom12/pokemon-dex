@@ -8,10 +8,11 @@
         <div class="page-count">共 {{ filtered.length }} 条</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <select class="type-select" v-model="typeFilter">
-          <option value="">全部属性</option>
-          <option v-for="ty in types" :key="ty.id" :value="ty.id">{{ ty.name }}</option>
-        </select>
+        <IconSelect v-model="typeFilter" :options="typeOptions" placeholder="全部属性">
+          <template #icon="{ option }">
+            <TypeIcon :tid="option.value" :size="20" />
+          </template>
+        </IconSelect>
         <DexSelect v-model="dexFilter" :options="dexList" />
         <input
           class="search-bar" style="max-width:320px"
@@ -35,6 +36,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { getPokemon, getTypes, getDexList, type DexListEntry, type Pokemon, type TypeEntry } from '../data'
 import PokemonCard from '../components/PokemonCard.vue'
 import DexSelect from '../components/DexSelect.vue'
+import IconSelect from '../components/IconSelect.vue'
+import TypeIcon from '../components/TypeIcon.vue'
 import Pagination from '../components/Pagination.vue'
 
 const allPokemon = ref<Pokemon[]>([])
@@ -55,14 +58,17 @@ onMounted(async () => {
     types.value = t
     dexList.value = d
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })
 
+const typeOptions = computed(() =>
+  types.value.map(ty => ({ value: ty.id, label: ty.name }))
+)
+
 const filtered = computed(() => {
   let groups: Array<{ dexNum: number; forms: Pokemon[] }>
-
   if (dexFilter.value) {
     // 图鉴模式：按图鉴内顺序排列，只包含图鉴内的形态，按 dexNum 分组
     const dex = dexList.value.find(d => d.id === dexFilter.value)

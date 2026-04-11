@@ -47,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'AboutPage' })
 import { ref, onMounted } from 'vue'
 import { getPokemon, getMoves, getTypes, getNatures, getBalls, getRegions, getSoftwares } from '../data'
 import type { SoftwareEntry } from '../data'
@@ -73,7 +74,7 @@ onMounted(async () => {
     softwares.value = s
     regions.value = r as { id: string; name: string }[]
     loaded.value = true
-  } catch (_e) {
+  } catch {
     // Stats section will simply not render
   }
 })

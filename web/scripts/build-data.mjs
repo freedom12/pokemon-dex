@@ -292,7 +292,6 @@ for (const pi of pokemonImageRaw) {
 const catRaw = loadJson("category.json");
 const heightRaw = loadJson("height.json");
 const weightRaw = loadJson("weight.json");
-const descRaw = loadJson("descText.json");
 const colorRaw = loadJson("color.json");
 const planRaw = loadJson("plan.json");
 const softRaw = loadJson("software.json");

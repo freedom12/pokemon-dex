@@ -13,7 +13,7 @@
  *   node scripts/fetch-battle-usage-scvi.mjs --force   # 强制重新拉取已缓存条目
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -79,7 +79,7 @@ if (listData.code !== 200) {
 
 // 展平赛季映射：{ seasonNo: { cId: { ... } } } → 数组
 const allSeasons = []
-for (const [seasonNo, entries] of Object.entries(listData.list)) {
+for (const [, entries] of Object.entries(listData.list)) {
   for (const entry of Object.values(entries)) {
     allSeasons.push({
       cId: entry.cId,

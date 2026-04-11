@@ -45,7 +45,7 @@ onMounted(async () => {
   try {
     natures.value = await getNatures()
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })

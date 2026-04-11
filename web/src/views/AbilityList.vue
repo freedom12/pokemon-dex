@@ -64,7 +64,7 @@ onMounted(async () => {
     allAbilities.value = a
     allPokemon.value = p
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })

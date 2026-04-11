@@ -9,7 +9,8 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+defineOptions({ name: 'PagePagination' })
+defineProps({
   modelValue: { type: Number, required: true },
   totalPages: { type: Number, required: true }
 })

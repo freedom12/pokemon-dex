@@ -8,14 +8,16 @@
         <div class="page-count">共 {{ filtered.length }} 个招式</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <select class="type-select" v-model="typeFilter">
-          <option value="">全部属性</option>
-          <option v-for="ty in types" :key="ty.id" :value="ty.id">{{ ty.name }}</option>
-        </select>
-        <select class="type-select" v-model="categoryFilter">
-          <option value="">全部分类</option>
-          <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-        </select>
+        <IconSelect v-model="typeFilter" :options="typeOptions" placeholder="全部属性">
+          <template #icon="{ option }">
+            <TypeIcon :tid="option.value" :size="20" />
+          </template>
+        </IconSelect>
+        <IconSelect v-model="categoryFilter" :options="categoryOptions" placeholder="全部分类">
+          <template #icon="{ option }">
+            <MoveCategoryIcon :cid="option.value" :size="20" />
+          </template>
+        </IconSelect>
         <input
           class="search-bar" style="max-width:320px"
           v-model="search" placeholder="搜索招式名称..."
@@ -66,6 +68,7 @@ import Pagination from '../components/Pagination.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 import MoveCategoryIcon from '../components/MoveCategoryIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
+import IconSelect from '../components/IconSelect.vue'
 
 const allMoves = ref<MoveEntry[]>([])
 const types = ref<TypeEntry[]>([])
@@ -89,15 +92,28 @@ onMounted(async () => {
     allPokemon.value = p
     allLearnsets.value = ls
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })
 
 const categories = computed(() => {
-  const set = new Set(allMoves.value.map(m => m.category).filter(Boolean))
-  return [...set]
+  const map = new Map<string, string>()
+  for (const m of allMoves.value) {
+    if (m.categoryId && m.category && !map.has(m.categoryId)) {
+      map.set(m.categoryId, m.category)
+    }
+  }
+  return map
 })
+
+const typeOptions = computed(() =>
+  types.value.map(ty => ({ value: ty.id, label: ty.name }))
+)
+
+const categoryOptions = computed(() =>
+  [...categories.value.entries()].map(([id, name]) => ({ value: id, label: name }))
+)
 
 const filtered = computed(() => {
   let list = allMoves.value
@@ -109,7 +125,7 @@ const filtered = computed(() => {
     list = list.filter(m => m.type === typeFilter.value)
   }
   if (categoryFilter.value) {
-    list = list.filter(m => m.category === categoryFilter.value)
+    list = list.filter(m => m.categoryId === categoryFilter.value)
   }
   return list
 })

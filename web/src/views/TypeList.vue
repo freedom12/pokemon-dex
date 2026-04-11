@@ -46,7 +46,7 @@ onMounted(async () => {
   try {
     types.value = await getTypes()
     loaded.value = true
-  } catch (_e) {
+  } catch {
     error.value = '数据加载失败，请刷新重试'
   }
 })

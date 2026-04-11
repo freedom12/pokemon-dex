@@ -1,32 +1,17 @@
 <template>
-  <div class="dex-select" ref="root">
-    <button class="dex-select-btn" @click="open = !open">
-      <template v-if="selected">
-        <span class="dex-select-icons">
-          <GameIcon v-for="sid in selected.softwareIds" :key="sid" :sid="sid" :size="20" />
-        </span>
-        <span>{{ selected.name }}</span>
-      </template>
-      <span v-else class="dex-select-placeholder">全部图鉴</span>
-      <span class="dex-select-arrow">▾</span>
-    </button>
-    <ul v-if="open" class="dex-select-list">
-      <li class="dex-select-item" :class="{ active: !modelValue }" @click="pick('')">
-        全部图鉴
-      </li>
-      <li v-for="d in options" :key="d.id" class="dex-select-item" :class="{ active: modelValue === d.id }" @click="pick(d.id)">
-        <span class="dex-select-icons">
-          <GameIcon v-for="sid in d.softwareIds" :key="sid" :sid="sid" :size="20" />
-        </span>
-        <span>{{ d.name }}</span>
-      </li>
-    </ul>
-  </div>
+  <IconSelect v-model="model" :options="selectOptions" placeholder="全部图鉴">
+    <template #icon="{ option }">
+      <span class="dex-select-icons">
+        <GameIcon v-for="sid in option.softwareIds" :key="sid" :sid="sid" :size="20" />
+      </span>
+    </template>
+  </IconSelect>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, type PropType } from 'vue'
+import { computed, type PropType } from 'vue'
 import GameIcon from './GameIcon.vue'
+import IconSelect from './IconSelect.vue'
 import type { DexListEntry } from '../data'
 
 const props = defineProps({
@@ -35,19 +20,12 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const open = ref(false)
-const root = ref<HTMLElement | null>(null)
+const model = computed({
+  get: () => props.modelValue,
+  set: (v: string) => emit('update:modelValue', v),
+})
 
-const selected = computed(() => props.options.find(d => d.id === props.modelValue) || null)
-
-function pick(id: string) {
-  emit('update:modelValue', id)
-  open.value = false
-}
-
-function onClickOutside(e: MouseEvent) {
-  if (root.value && !root.value.contains(e.target as Node)) open.value = false
-}
-onMounted(() => document.addEventListener('click', onClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
+const selectOptions = computed(() =>
+  props.options.map(d => ({ value: d.id, label: d.name, softwareIds: d.softwareIds }))
+)
 </script>
