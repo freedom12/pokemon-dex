@@ -7,7 +7,8 @@
   "scripts": {
     "data": "node scripts/build-data.mjs",
     "fetch-learnsets": "node scripts/fetch-learnsets.mjs",
-    "fetch-battle-usage": "node scripts/fetch-battle-usage.mjs",
+    "fetch-battle-usage-scvi": "node scripts/fetch-battle-usage-scvi.mjs",
+    "fetch-battle-usage-swsh": "node scripts/fetch-battle-usage-swsh.mjs",
     "dev": "vite",
     "build": "node scripts/build-data.mjs && vite build",
     "preview": "vite preview"
