@@ -153,7 +153,13 @@
               <div class="stat-section" v-if="temotiData.seikaku?.length">
                 <div class="stat-section-title">性格</div>
                 <div v-for="s in temotiData.seikaku.slice(0, 5)" :key="s.id" class="stat-row-bar">
-                  <span class="stat-item-name">{{ getNatureName(s.id) }}</span>
+                  <span class="stat-item-name">
+                    {{ getNatureName(s.id) }}
+                    <template v-if="getNatureEffect(s.id)?.plus !== '无'">
+                      <span class="nature-plus">+{{ getNatureEffect(s.id).plus }}</span>
+                      <span class="nature-minus">-{{ getNatureEffect(s.id).minus }}</span>
+                    </template>
+                  </span>
                   <div class="stat-bar-wrap">
                     <div class="stat-bar-fill nature-bar" :style="{width: s.val + '%'}"></div>
                   </div>
@@ -331,7 +337,7 @@ onMounted(async () => {
   allMoves.value = movesMap
 
   const naturesMap = {}
-  for (const n of natures) naturesMap[n.id] = n.name
+  for (const n of natures) naturesMap[n.id] = { name: n.name, plus: n.plus, minus: n.minus }
   allNatures.value = naturesMap
 
   const abilitiesMap = {}
@@ -446,6 +452,10 @@ async function loadSeasonData() {
     ])
     pokemonList.value = pList || []
     detailData.value = pdetail || null
+    // 默认选中排名第一的宝可梦
+    if (pokemonList.value.length > 0) {
+      selectPokemon(pokemonList.value[0])
+    }
   } catch (e) {
     pokemonList.value = []
     detailData.value = null
@@ -502,7 +512,8 @@ function getMoveType(id) { return allMoves.value[`WZ${PAD4(id)}`]?.type || '' }
 function getItemName(id) { return allItems.value[parseInt(id)] || `道具#${id}` }
 function getItemIcon(id) { return `https://resource.pokemon-home.com/battledata/img/item/item_${PAD4(id)}.png` }
 function getAbilityName(id) { return allAbilities.value[`TK${PAD4(id)}`] || `特性#${id}` }
-function getNatureName(id) { return allNatures.value[`PE${PAD4(id)}`] || `性格#${id}` }
+function getNatureName(id) { return allNatures.value[`PE${PAD4(id)}`]?.name || `性格#${id}` }
+function getNatureEffect(id) { return allNatures.value[`PE${PAD4(id)}`] || null }
 function getTypeName(id) { return typeMap.value[`TY${PAD4(id)}`]?.name || `属性#${id}` }
 function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#888' }
 </script>
@@ -610,6 +621,8 @@ function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#88
 .stat-bar-fill.item-bar { background: #4caf88; }
 .stat-bar-fill.ability-bar { background: #5b8dd9; }
 .stat-bar-fill.nature-bar { background: #b06fd8; }
+.nature-plus { font-size: 11px; color: #4ade80; margin-left: 4px; }
+.nature-minus { font-size: 11px; color: #f87171; margin-left: 2px; }
 .stat-bar-fill.tera-bar { background: #e0a030; }
 .stat-bar-fill.win-bar { background: #4cba6a; }
 .stat-bar-fill.lose-bar { background: #e05050; }
