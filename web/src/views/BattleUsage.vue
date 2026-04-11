@@ -127,7 +127,7 @@
                 <div class="stat-section-title">道具</div>
                 <div v-for="m in temotiData.motimono.slice(0, 10)" :key="m.id" class="stat-row-bar">
                   <span class="stat-item-name">
-                    <img :src="getItemIcon(m.id)" class="item-icon" />
+                    <ItemIcon :src="getItemIcon(m.id)" :alt="getItemName(m.id)" :size="20" />
                     {{ getItemName(m.id) }}
                   </span>
                   <div class="stat-bar-wrap">
@@ -175,12 +175,16 @@
                 </div>
               </div>
 
-              <!-- 常见搭档 -->
+              <!-- 一起添加到对战队伍的宝可梦TOP10 -->
               <div class="stat-section" v-if="temotiData.pokemon?.length">
-                <div class="stat-section-title">常见搭档</div>
+                <div class="stat-section-title">一起添加到对战队伍的宝可梦TOP10</div>
                 <div v-for="p in temotiData.pokemon.slice(0, 10)" :key="`${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
                   <PokemonIcon class="poke-icon-sm" :src="getPokemonIcon(p)" :size="28" />
-                  <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                  <span class="poke-dex">#{{ PAD4(p.id) }}</span>
+                  <span class="teammate-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                  <span class="teammate-types">
+                    <TypeIcon v-for="t in getTypeNames(p)" :key="t.id" :tid="t.id" :size="16" />
+                  </span>
                 </div>
               </div>
               <!-- 击倒对手 -->
@@ -190,7 +194,11 @@
                   <div class="stat-section-title">打倒的宝可梦 TOP10</div>
                   <div v-for="p in winData.pokemon.slice(0, 10)" :key="`w-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
                     <PokemonIcon class="poke-icon-sm" :src="getPokemonIcon(p)" :size="28" />
-                    <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                    <span class="poke-dex">#{{ PAD4(p.id) }}</span>
+                    <span class="teammate-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                    <span class="teammate-types">
+                      <TypeIcon v-for="t in getTypeNames(p)" :key="t.id" :tid="t.id" :size="16" />
+                    </span>
                   </div>
                 </div>
                 <div class="stat-section" v-if="winData.waza?.length">
@@ -215,7 +223,11 @@
                   <div class="stat-section-title">打倒自己的宝可梦 TOP10</div>
                   <div v-for="p in loseData.pokemon.slice(0, 10)" :key="`l-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
                     <PokemonIcon class="poke-icon-sm" :src="getPokemonIcon(p)" :size="28" />
-                    <span class="stat-item-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                    <span class="poke-dex">#{{ PAD4(p.id) }}</span>
+                    <span class="teammate-name">{{ getPokemonName(p) }}<span v-if="getPokemonFormName(p)" class="form-label">{{ getPokemonFormName(p) }}</span></span>
+                    <span class="teammate-types">
+                      <TypeIcon v-for="t in getTypeNames(p)" :key="t.id" :tid="t.id" :size="16" />
+                    </span>
                   </div>
                 </div>
                 <div class="stat-section" v-if="loseData.waza?.length">
@@ -249,6 +261,7 @@ defineOptions({ name: 'BattleUsageScvi' })
 import { ref, computed, onMounted, watch } from 'vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
+import ItemIcon from '../components/ItemIcon.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail
@@ -609,6 +622,8 @@ function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#88
   cursor: pointer; border-radius: 5px; transition: background .15s;
 }
 .teammate-row:hover { background: rgba(255,255,255,.05); }
+.teammate-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.teammate-types { display: flex; align-items: center; gap: 3px; margin-left: auto; flex-shrink: 0; }
 .stat-section-group-title {
   font-size: 13px; font-weight: 700; margin: 16px 0 4px;
   padding: 4px 8px; border-radius: 5px;

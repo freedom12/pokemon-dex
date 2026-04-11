@@ -124,10 +124,12 @@ if (internetData.code !== 200) {
   process.exit(1)
 }
 
-// 展平：{ numericKey: entry } → 数组
+// 展平：API 返回 { lastKey, list: { numericKey: entry } } → 数组
 const allInternetSeasons = []
-if (internetData.list && typeof internetData.list === 'object') {
-  for (const [numericKey, entry] of Object.entries(internetData.list)) {
+const internetInner = internetData.list?.list ?? internetData.list
+if (internetInner && typeof internetInner === 'object') {
+  for (const [numericKey, entry] of Object.entries(internetInner)) {
+    if (!entry || typeof entry !== 'object' || !entry.name) continue
     allInternetSeasons.push({
       cId: numericKey,           // 统一用 cId 字段存储
       name: entry.name,
