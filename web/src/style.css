@@ -130,7 +130,7 @@ a:hover { text-decoration: underline; }
 .info-label {
   color: var(--text2); min-width: 48px;
 }
-.detail-header { padding: 24px 0; }
+.detail-header { padding: 0; }
 .detail-name { font-size: 28px; font-weight: 700; }
 .detail-dex { font-size: 14px; color: var(--text2); }
 .detail-section { margin: 20px 0; }
