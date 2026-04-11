@@ -36,17 +36,17 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const open = ref(false)
-const root = ref(null)
+const root = ref<HTMLElement | null>(null)
 
 const selected = computed(() => props.options.find(d => d.id === props.modelValue) || null)
 
-function pick(id) {
+function pick(id: string) {
   emit('update:modelValue', id)
   open.value = false
 }
 
-function onClickOutside(e) {
-  if (root.value && !root.value.contains(e.target)) open.value = false
+function onClickOutside(e: MouseEvent) {
+  if (root.value && !root.value.contains(e.target as Node)) open.value = false
 }
 onMounted(() => document.addEventListener('click', onClickOutside))
 onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))

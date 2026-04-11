@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div class="page-title">属性</div>
@@ -34,25 +35,25 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getTypes } from '../data'
+import { getTypes, type TypeEntry } from '../data'
 import TypeIcon from '../components/TypeIcon.vue'
 
-const types = ref([])
+const types = ref<TypeEntry[]>([])
 const loaded = ref(false)
+const error = ref('')
 
 onMounted(async () => {
-  types.value = await getTypes()
-  loaded.value = true
+  try {
+    types.value = await getTypes()
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 
 const typeNameMap = computed(() => {
-  const m = {}
+  const m: Record<string, string> = {}
   for (const t of types.value) m[t.id] = t.name
-  return m
-})
-const typeColorMap = computed(() => {
-  const m = {}
-  for (const t of types.value) m[t.id] = t.color
   return m
 })
 </script>

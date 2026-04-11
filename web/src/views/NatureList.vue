@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div class="page-title">性格列表</div>
@@ -34,13 +35,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getNatures } from '../data'
+import { getNatures, type NatureEntry } from '../data'
 
-const natures = ref([])
+const natures = ref<NatureEntry[]>([])
 const loaded = ref(false)
+const error = ref('')
 
 onMounted(async () => {
-  natures.value = await getNatures()
-  loaded.value = true
+  try {
+    natures.value = await getNatures()
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 </script>

@@ -34,7 +34,7 @@ defineProps({
 const emit = defineEmits(['close'])
 const router = useRouter()
 
-function go(p) {
+function go(p: Pokemon) {
   emit('close')
   router.push(`/pokemon/${p.id}`)
 }

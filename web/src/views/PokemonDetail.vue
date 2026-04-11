@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!pokemon" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!pokemon" class="loading">加载中...</div>
   <template v-else>
     <div style="padding-top:12px">
       <router-link to="/pokemons" style="font-size:13px">← 返回</router-link>
@@ -141,15 +142,16 @@
     </div>
 
     <!-- 可学习招式 -->
-    <LearnsetPanel :learnset="learnsetData" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
+    <LearnsetPanel :learnset="learnsetData ?? undefined" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
   </template>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE, type GameGroup, type Pokemon } from '../data'
-import type { DetailedPokemon, ZukanDesc } from '../types'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import type { DetailedPokemon, ZukanDesc, PokemonStats } from '../types'
+import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
@@ -160,7 +162,7 @@ import { buildEvoTree } from '../utils/evo'
 import { usePokemonLookup } from '../composables/usePokemonLookup'
 import type { EvoNode, EvoBranchNode, EvoTreeItem } from '../utils/evo'
 
-const props = defineProps({ id: String })
+defineProps({ id: String })
 const route = useRoute()
 const router = useRouter()
 const allPokemon = ref<Pokemon[]>([])
@@ -173,9 +175,10 @@ const showFemale = ref(false)
 const zukanOpen = ref(true)
 const abilityOpen = ref(true)
 const evoOpen = ref(true)
-const learnsetData = ref(null)
-const movesMap = ref<Record<string, unknown>>({})
-const allLearnsets = ref<Record<string, Record<string, unknown>>>({})
+const learnsetData = ref<Record<string, VgData> | null>(null)
+const movesMap = ref<Record<string, MoveEntry>>({})
+const allLearnsets = ref<Learnsets>({})
+const error = ref('')
 
 const {
   lookupVisible: abilityLookupVisible,
@@ -192,8 +195,8 @@ function isEvoBranch(node: EvoTreeItem): node is EvoBranchNode {
 const appearSet = computed(() => new Set(pokemon.value?.appearGames || []))
 function getSoftwareName(sid: string) { return softwareMap.value[sid] || sid }
 
-function isCurrent(node: EvoNode) {
-  return pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
+function isCurrent(node: EvoNode): boolean {
+  return !!pokemon.value && node.dexNum === pokemon.value.dexNum && node.formNo === pokemon.value.formNo
 }
 
 const displayIcon = computed(() => {
@@ -208,7 +211,7 @@ const displayImage = computed(() => {
   return pokemon.value.image || ''
 })
 
-const statList = [
+const statList: { key: keyof PokemonStats; label: string }[] = [
   { key: 'hp', label: 'HP' },
   { key: 'atk', label: '攻击' },
   { key: 'def', label: '防御' },
@@ -217,7 +220,7 @@ const statList = [
   { key: 'agi', label: '速度' },
 ]
 
-function statColor(val) {
+function statColor(val: number) {
   if (val < 50) return '#f87171'
   if (val < 80) return '#fb923c'
   if (val < 100) return '#facc15'
@@ -226,19 +229,21 @@ function statColor(val) {
 }
 
 async function loadData() {
-  const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Record<string, Record<string, unknown>>)), getPokemonDescs(), getAbilities()])
+  try {
+    error.value = ''
+    const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities()])
   allPokemon.value = all
   gameGroups.value = gg
-  const swMap = {}
+  const swMap: Record<string, string> = {}
   for (const s of sw) swMap[s.id] = s.name
   softwareMap.value = swMap
 
   // 构建特性名 → 描述映射
-  const abilityDescMap = {}
-  for (const a of abList) abilityDescMap[a.name] = a.desc
+  const abilityDescMap: Record<string, string> = {}
+  for (const a of abList) abilityDescMap[a.name] = a.desc ?? ''
 
   // 构建 moveId(数字) → move 对象映射
-  const mMap = {}
+  const mMap: Record<string, MoveEntry> = {}
   for (const m of allMoves) {
     const num = parseInt(m.id.replace(/\D/g, ''), 10)
     mMap[num] = m
@@ -249,7 +254,7 @@ async function loadData() {
   if (base) {
     // 合并详情扩展数据（图鉴描述、大图、特性描述）
     const ext = (descsMap[base.id] || {}) as Record<string, unknown>
-    const ga = (descsMap._g || []) as Array<string[]>
+    const ga = ((descsMap as Record<string, unknown>)._g || []) as Array<string[]>
     pokemon.value = {
       ...base,
       image: ext.i ? ZUKAN_IMG_BASE + ext.i + '.png' : '',
@@ -303,14 +308,18 @@ async function loadData() {
       evoTree.value = []
     }
   }
+  } catch {
+    error.value = '数据加载失败，请刷新重试'
+    pokemon.value = null
+  }
 }
 
 function lookupAbility(ab: { name: string }) {
   lookupByAbility(ab.name, allPokemon.value)
 }
 
-function switchForm(f) { router.push(`/pokemon/${f.id}`) }
-function goTo(e) { if (e.id) router.push(`/pokemon/${e.id}`) }
+function switchForm(f: Pokemon) { router.push(`/pokemon/${f.id}`) }
+function goTo(e: EvoNode) { if (e.id) router.push(`/pokemon/${e.id}`) }
 
 onMounted(loadData)
 watch(() => route.params.id, loadData)

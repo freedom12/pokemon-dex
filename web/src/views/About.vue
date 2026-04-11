@@ -62,15 +62,19 @@ const softwares = ref<SoftwareEntry[]>([])
 const regions = ref<{ id: string; name: string }[]>([])
 
 onMounted(async () => {
-  const [p, m, t, n, b, r, s] = await Promise.all([
-    getPokemon(), getMoves(), getTypes(), getNatures(), getBalls(), getRegions(), getSoftwares()
-  ])
-  stats.value = {
-    pokemon: p.length, moves: m.length, types: t.length,
-    natures: n.length, balls: (b as unknown[]).length, regions: (r as unknown[]).length, softwares: s.length,
+  try {
+    const [p, m, t, n, b, r, s] = await Promise.all([
+      getPokemon(), getMoves(), getTypes(), getNatures(), getBalls(), getRegions(), getSoftwares()
+    ])
+    stats.value = {
+      pokemon: p.length, moves: m.length, types: t.length,
+      natures: n.length, balls: (b as unknown[]).length, regions: (r as unknown[]).length, softwares: s.length,
+    }
+    softwares.value = s
+    regions.value = r as { id: string; name: string }[]
+    loaded.value = true
+  } catch (_e) {
+    // Stats section will simply not render
   }
-  softwares.value = s
-  regions.value = r as { id: string; name: string }[]
-  loaded.value = true
 })
 </script>

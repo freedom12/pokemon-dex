@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -98,7 +99,7 @@
               <PokemonIcon class="detail-icon" :src="getPokemonIcon(selectedPokemon)" :alt="getPokemonName(selectedPokemon)" :size="72" />
               <div>
                 <div class="detail-name"><span class="detail-dex">#{{ PAD4(selectedPokemon.id) }}</span> {{ getPokemonName(selectedPokemon) }}<span v-if="getPokemonFormName(selectedPokemon)" class="form-label" style="margin-left:6px">{{ getPokemonFormName(selectedPokemon) }}</span></div>
-                <div class="detail-rank">第 {{ pokemonList.findIndex(p => p.id === selectedPokemon.id && p.form === selectedPokemon.form) + 1 }} 名</div>
+                <div class="detail-rank">第 {{ pokemonList.findIndex(p => p.id === selectedPokemon!.id && p.form === selectedPokemon!.form) + 1 }} 名</div>
                 <div v-if="getTypeNames(selectedPokemon).length" class="detail-types">
                   <TypeIcon v-for="t in getTypeNames(selectedPokemon)" :key="t.id" :tid="t.id" :alt="t.name" :size="24" />
                 </div>
@@ -273,11 +274,13 @@ import {
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
   type BattleUsagePokemonItem, type BattleSeason, type Pokemon,
 } from '../data'
+import type { BattleDetailData, BattleFormData } from '../types'
 
 const PAD4 = (n: number | string) => String(n).padStart(4, '0')
 
 const loaded = ref(false)
 const dataLoading = ref(false)
+const error = ref('')
 
 // ─── 主数据 ────────────────────────────────────────────────
 const allPokemon = ref<Pokemon[]>([])
@@ -305,7 +308,7 @@ const selectedInternetCId = ref<string | null>(null)
 
 // ─── 使用率数据 ────────────────────────────────────────────
 const pokemonList = ref<BattleUsagePokemonItem[]>([])
-const detailData = ref<Record<string, unknown> | null>(null)
+const detailData = ref<BattleDetailData | null>(null)
 
 // ─── 选中宝可梦 ────────────────────────────────────────────
 const selectedPokemon = ref<BattleUsagePokemonItem | null>(null)
@@ -327,7 +330,8 @@ function applySeasonLists(seasonList: BattleSeason[], internetList: BattleSeason
 
 // ─── 初始化 ───────────────────────────────────────────────
 onMounted(async () => {
-  const [pList, types, moves, natures, abilities, items, seasonList, internetList] = await Promise.all([
+  try {
+    const [pList, types, moves, natures, abilities, items, seasonList, internetList] = await Promise.all([
     getPokemon(),
     getTypes(),
     getMoves(),
@@ -372,6 +376,9 @@ onMounted(async () => {
 
   await loadSeasonData()
   loaded.value = true
+  } catch {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 
 // ─── 游戏切换 ─────────────────────────────────────────────
@@ -405,11 +412,11 @@ const seasonOptions = computed(() => {
   return nums.map(n => ({ value: n, label: `S${n} 赛季` }))
 })
 
-function getAvailableRules(seasonNo) {
+function getAvailableRules(seasonNo: number | null): number[] {
   return rankedSeasons.value.filter(s => s.season === seasonNo).map(s => s.rule)
 }
 
-function hasRule(rule) {
+function hasRule(rule: number): boolean {
   return getAvailableRules(selectedSeasonNo.value).includes(rule)
 }
 
@@ -442,12 +449,12 @@ async function loadSeasonData() {
       getBattleUsagePDetail(currentGame.value, s.cId),
     ])
     pokemonList.value = pList || []
-    detailData.value = (pdetail as Record<string, unknown>) || null
+    detailData.value = pdetail || null
     // 默认选中排名第一的宝可梦
     if (pokemonList.value.length > 0) {
       selectPokemon(pokemonList.value[0])
     }
-  } catch (e) {
+  } catch {
     pokemonList.value = []
     detailData.value = null
   } finally {
@@ -461,24 +468,24 @@ function onSeasonChange() {
   loadSeasonData()
 }
 
-function selectRule(rule) {
+function selectRule(rule: number) {
   if (!hasRule(rule)) return
   selectedRule.value = rule
   loadSeasonData()
 }
 
 // ─── 选中宝可梦 ───────────────────────────────────────────
-function selectPokemon(item) {
+function selectPokemon(item: BattleUsagePokemonItem) {
   selectedPokemon.value = item
 }
 
 // ─── 详情数据 ─────────────────────────────────────────────
-function getFormEntry() {
+function getFormEntry(): BattleFormData | null {
   if (!selectedPokemon.value || !detailData.value) return null
   const { id, form } = selectedPokemon.value
   const pokEntry = detailData.value[String(id)]
   if (!pokEntry) return null
-  return pokEntry[String(form)] || null
+  return pokEntry[String(form)] ?? null
 }
 
 const temotiData = computed(() => getFormEntry()?.temoti || null)
@@ -486,27 +493,27 @@ const winData = computed(() => getFormEntry()?.win || null)
 const loseData = computed(() => getFormEntry()?.lose || null)
 
 // ─── 宝可梦查找 ────────────────────────────────────────────
-function findPokemon(id, form) {
+function findPokemon(id: number, form: number): Pokemon | undefined {
   return pokemonByDexForm.value.get(`${id}_${form}`)
     || pokemonByDexForm.value.get(`${id}_0`)
     || allPokemon.value.find(p => p.dexNum === id)
 }
 
-function getPokemonIcon(item) { return findPokemon(item.id, item.form)?.icon || '' }
-function getPokemonName(item) { return findPokemon(item.id, item.form)?.name || `#${item.id}` }
-function getPokemonFormName(item) { return findPokemon(item.id, item.form)?.form || '' }
-function getTypeNames(item) { return findPokemon(item.id, item.form)?.types || [] }
+function getPokemonIcon(item: BattleUsagePokemonItem): string { return findPokemon(item.id, item.form)?.icon || '' }
+function getPokemonName(item: BattleUsagePokemonItem): string { return findPokemon(item.id, item.form)?.name || `#${item.id}` }
+function getPokemonFormName(item: BattleUsagePokemonItem): string { return findPokemon(item.id, item.form)?.form || '' }
+function getTypeNames(item: BattleUsagePokemonItem) { return findPokemon(item.id, item.form)?.types || [] }
 
 // ─── ID 转名称 ────────────────────────────────────────────
-function getMoveName(id) { return allMoves.value[`WZ${PAD4(id)}`]?.name || `招式#${id}` }
-function getMoveType(id) { return allMoves.value[`WZ${PAD4(id)}`]?.type || '' }
-function getItemName(id) { return allItems.value[parseInt(id)] || `道具#${id}` }
-function getItemIcon(id) { return `https://resource.pokemon-home.com/battledata/img/item/item_${PAD4(id)}.png` }
-function getAbilityName(id) { return allAbilities.value[`TK${PAD4(id)}`] || `特性#${id}` }
-function getNatureName(id) { return allNatures.value[`PE${PAD4(id)}`]?.name || `性格#${id}` }
-function getNatureEffect(id) { return allNatures.value[`PE${PAD4(id)}`] || null }
-function getTypeName(id) { return typeMap.value[`TY${PAD4(id)}`]?.name || `属性#${id}` }
-function getTypeColor(id) { return typeMap.value[`TY${PAD4(id)}`]?.color || '#888' }
+function getMoveName(id: number | string): string { return allMoves.value[`WZ${PAD4(id)}`]?.name || `招式#${id}` }
+function getMoveType(id: number | string): string { return allMoves.value[`WZ${PAD4(id)}`]?.type || '' }
+function getItemName(id: number | string): string { return allItems.value[String(id)] || `道具#${id}` }
+function getItemIcon(id: number | string): string { return `https://resource.pokemon-home.com/battledata/img/item/item_${PAD4(id)}.png` }
+function getAbilityName(id: number | string): string { return allAbilities.value[`TK${PAD4(id)}`] || `特性#${id}` }
+function getNatureName(id: number | string): string { return allNatures.value[`PE${PAD4(id)}`]?.name || `性格#${id}` }
+function getNatureEffect(id: number | string) { return allNatures.value[`PE${PAD4(id)}`] || null }
+function getTypeName(id: number | string): string { return typeMap.value[`TY${PAD4(id)}`]?.name || `属性#${id}` }
+
 </script>
 
 <style scoped>

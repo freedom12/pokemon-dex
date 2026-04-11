@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -26,17 +27,25 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { getItems } from '../data'
+import { getItems, type ItemEntry } from '../data'
 import ItemIcon from '../components/ItemIcon.vue'
 import Pagination from '../components/Pagination.vue'
 
-const allItems = ref([])
+const allItems = ref<ItemEntry[]>([])
 const loaded = ref(false)
+const error = ref('')
 const search = ref('')
 const page = ref(1)
 const pageSize = 50
 
-onMounted(async () => { allItems.value = await getItems(); loaded.value = true })
+onMounted(async () => {
+  try {
+    allItems.value = await getItems()
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
+})
 
 const filtered = computed(() => {
   if (!search.value) return allItems.value

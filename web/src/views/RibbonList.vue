@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -31,12 +32,20 @@ interface RibbonEntry { id: string; name: string; desc?: string; hasAlt?: boolea
 const iconBase = import.meta.env.BASE_URL + 'img/ribbon_icon/'
 const ribbons = ref<RibbonEntry[]>([])
 const loaded = ref(false)
+const error = ref('')
 const altState = ref<Record<string, boolean>>({})
 
-onMounted(async () => { ribbons.value = await getRibbons() as RibbonEntry[]; loaded.value = true })
+onMounted(async () => {
+  try {
+    ribbons.value = await getRibbons() as RibbonEntry[]
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
+})
 
-function toggleAlt(id) { altState.value[id] = !altState.value[id] }
-function imgSrc(r) { return iconBase + r.id + (r.hasAlt && altState.value[r.id] ? 'b' : '') + '.png' }
+function toggleAlt(id: string) { altState.value[id] = !altState.value[id] }
+function imgSrc(r: RibbonEntry) { return iconBase + r.id + (r.hasAlt && altState.value[r.id] ? 'b' : '') + '.png' }
 </script>
 
 <style scoped>

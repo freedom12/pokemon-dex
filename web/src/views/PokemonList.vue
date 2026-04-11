@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -31,15 +32,16 @@
 <script setup lang="ts">
 defineOptions({ name: 'PokemonList' })
 import { ref, computed, onMounted, watch } from 'vue'
-import { getPokemon, getTypes, getDexList, type DexListEntry } from '../data'
+import { getPokemon, getTypes, getDexList, type DexListEntry, type Pokemon, type TypeEntry } from '../data'
 import PokemonCard from '../components/PokemonCard.vue'
 import DexSelect from '../components/DexSelect.vue'
 import Pagination from '../components/Pagination.vue'
 
-const allPokemon = ref([])
-const types = ref([])
+const allPokemon = ref<Pokemon[]>([])
+const types = ref<TypeEntry[]>([])
 const dexList = ref<DexListEntry[]>([])
 const loaded = ref(false)
+const error = ref('')
 const search = ref('')
 const typeFilter = ref('')
 const dexFilter = ref('')
@@ -47,15 +49,19 @@ const page = ref(1)
 const pageSize = 60
 
 onMounted(async () => {
-  const [p, t, d] = await Promise.all([getPokemon(), getTypes(), getDexList()])
-  allPokemon.value = p
-  types.value = t
-  dexList.value = d
-  loaded.value = true
+  try {
+    const [p, t, d] = await Promise.all([getPokemon(), getTypes(), getDexList()])
+    allPokemon.value = p
+    types.value = t
+    dexList.value = d
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 
 const filtered = computed(() => {
-  let groups // Array<{ dexNum, forms: pokemon[] }>
+  let groups: Array<{ dexNum: number; forms: Pokemon[] }>
 
   if (dexFilter.value) {
     // 图鉴模式：按图鉴内顺序排列，只包含图鉴内的形态，按 dexNum 分组

@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -71,6 +72,7 @@ const types = ref<TypeEntry[]>([])
 const allPokemon = ref<Pokemon[]>([])
 const allLearnsets = ref<Learnsets>({})
 const loaded = ref(false)
+const error = ref('')
 const search = ref('')
 const typeFilter = ref('')
 const categoryFilter = ref('')
@@ -80,12 +82,16 @@ const pageSize = 50
 const { lookupVisible, lookupTitle, lookupResults, lookupByMove, closeLookup } = usePokemonLookup()
 
 onMounted(async () => {
-  const [m, t, p, ls] = await Promise.all([getMoves(), getTypes(), getPokemon(), getLearnsets().catch(() => ({}))])
-  allMoves.value = m
-  types.value = t
-  allPokemon.value = p
-  allLearnsets.value = ls as Learnsets
-  loaded.value = true
+  try {
+    const [m, t, p, ls] = await Promise.all([getMoves(), getTypes(), getPokemon(), getLearnsets().catch(() => ({} as Learnsets))])
+    allMoves.value = m
+    types.value = t
+    allPokemon.value = p
+    allLearnsets.value = ls
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 
 const categories = computed(() => {

@@ -3,7 +3,7 @@ import type { Pokemon } from '../types'
 
 // learnsets 的原始数据结构类型
 export type VgData = {
-  'level-up'?: Array<{ move: number }>
+  'level-up'?: Array<{ move: number; level: number }>
   machine?: number[]
   egg?: number[]
   tutor?: number[]

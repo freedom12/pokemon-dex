@@ -67,6 +67,9 @@ export interface TypeEntry {
   id: string
   name: string
   color: string
+  weakTo: string[]
+  resistTo: string[]
+  immuneTo: string[]
 }
 
 export interface MoveEntry {
@@ -85,6 +88,7 @@ export interface NatureEntry {
   name: string
   plus: string
   minus: string
+  desc?: string
 }
 
 export interface AbilityEntry {
@@ -144,3 +148,31 @@ export interface BattleSeason {
   end?: string
   cnt?: number | string
 }
+
+// ─── 对战使用率详情类型 ─────────────────────────────────────────────────────
+
+export interface BattleStatItem {
+  id: number | string
+  val: number
+}
+
+export interface BattleFormData {
+  temoti?: {
+    waza?: BattleStatItem[]
+    motimono?: BattleStatItem[]
+    tokusei?: BattleStatItem[]
+    seikaku?: BattleStatItem[]
+    terastal?: BattleStatItem[]
+    pokemon?: BattleUsagePokemonItem[]
+  } | null
+  win?: {
+    pokemon?: BattleUsagePokemonItem[]
+    waza?: BattleStatItem[]
+  } | null
+  lose?: {
+    pokemon?: BattleUsagePokemonItem[]
+    waza?: BattleStatItem[]
+  } | null
+}
+
+export type BattleDetailData = Record<string, Record<string, BattleFormData>>

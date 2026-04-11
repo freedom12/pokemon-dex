@@ -15,7 +15,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-function go(p) {
+function go(p: number) {
   emit('update:modelValue', p)
   document.documentElement.scrollTop = 0
 }

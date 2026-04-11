@@ -70,14 +70,15 @@ import { ref, computed, watch, type PropType } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
 import MoveCategoryIcon from './MoveCategoryIcon.vue'
 import TypeIcon from './TypeIcon.vue'
-import type { Pokemon } from '../types'
+import type { Pokemon, MoveEntry } from '../types'
 import { usePokemonLookup } from '../composables/usePokemonLookup'
+import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import { VG_LABELS, VG_ORDER } from '../constants/learnset'
 
 const props = defineProps({
-  learnset: { type: Object, default: null }, // { vgName: { "level-up": [...], ... }, ... }
-  movesMap: { type: Object, default: () => ({}) },
-  allLearnsets: { type: Object, default: () => ({}) },
+  learnset: { type: Object as PropType<Record<string, VgData> | null>, default: null },
+  movesMap: { type: Object as PropType<Record<string, MoveEntry>>, default: () => ({}) },
+  allLearnsets: { type: Object as PropType<Learnsets>, default: () => ({}) },
   allPokemon: { type: Array as PropType<Pokemon[]>, default: () => [] },
 })
 
@@ -93,7 +94,7 @@ function vgLabel(vg: string): string { return VG_LABELS[vg] || vg }
 // 当前形态可用的版本组列表
 const availableVgs = computed(() => {
   if (!props.learnset) return [] as string[]
-  return VG_ORDER.filter(vg => props.learnset[vg])
+  return VG_ORDER.filter(vg => props.learnset?.[vg])
 })
 
 // learnset 变化时重置版本选择
@@ -131,30 +132,30 @@ watch(tabs, (newTabs) => {
   }
 })
 
-function getMoveList(tabKey: string) {
+function getMoveList(tabKey: string): Array<MoveEntry & { level?: number }> {
   if (!currentVgData.value) return []
-  const data = currentVgData.value[tabKey]
+  const data = (currentVgData.value as Record<string, unknown>)[tabKey]
   if (!data) return []
   if (tabKey === 'level-up') {
-    return data.map(entry => {
+    return (data as Array<{ move: number; level: number }>).map((entry) => {
       const m = props.movesMap[entry.move]
       if (!m) return null
       return { ...m, level: entry.level }
-    }).filter(Boolean)
+    }).filter(Boolean) as Array<MoveEntry & { level: number }>
   }
-  return data.map(mid => props.movesMap[mid]).filter(Boolean)
+  return (data as number[]).map((mid: number) => props.movesMap[mid]).filter(Boolean)
 }
 
 const filteredMoves = computed(() => {
   let list = getMoveList(activeTab.value)
   if (search.value) {
     const q = search.value.toLowerCase()
-    list = list.filter(m => m.name.toLowerCase().includes(q))
+    list = list.filter((m: MoveEntry) => m.name.toLowerCase().includes(q))
   }
   return list
 })
 
-function lookupMove(move) {
+function lookupMove(move: MoveEntry) {
   lookupByMove(
     parseInt(move.id.replace(/\D/g, ''), 10),
     move.name,

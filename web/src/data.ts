@@ -11,8 +11,9 @@ import type {
   Pokemon, SoftwareEntry, GameGroup, DexListEntry,
   TypeEntry, MoveEntry, NatureEntry, AbilityEntry,
   ItemEntry, LangEntry, BattleSeason,
-  PokemonDescMap, BattleUsagePokemonItem,
+  PokemonDescMap, BattleUsagePokemonItem, BattleDetailData,
 } from './types'
+import type { Learnsets } from './composables/usePokemonLookup'
 
 // ─── 缓存 ───────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ async function load<T = unknown>(name: string, lang: string): Promise<T> {
   const key = `${lang}/${name}`
   if (cache[key]) return cache[key] as T
   const res = await fetch(`${import.meta.env.BASE_URL}data/${lang}/${name}.json`)
+  if (!res.ok) throw new Error(`Failed to load ${key}: ${res.status}`)
   const data = await res.json() as T
   cache[key] = data
   return data
@@ -33,6 +35,7 @@ async function load<T = unknown>(name: string, lang: string): Promise<T> {
 async function loadGlobal<T = unknown>(name: string): Promise<T> {
   if (cache[name]) return cache[name] as T
   const res = await fetch(`${import.meta.env.BASE_URL}data/${name}.json`)
+  if (!res.ok) throw new Error(`Failed to load ${name}: ${res.status}`)
   const data = await res.json() as T
   cache[name] = data
   return data
@@ -41,8 +44,8 @@ async function loadGlobal<T = unknown>(name: string): Promise<T> {
 export const getLangs = (): Promise<LangEntry[]> => loadGlobal('langs')
 export const getRibbons = (lang?: string) => load('ribbons', lang ?? currentLang.value)
 
-const ICON_BASE = 'https://resource.pokemon-home.com/battledata/img/pokei128/'
-export const ZUKAN_IMG_BASE = 'https://zukan.pokemon.co.jp/zukan-api/up/images/index/'
+const ICON_BASE = import.meta.env.VITE_ICON_BASE ?? 'https://resource.pokemon-home.com/battledata/img/pokei128/'
+export const ZUKAN_IMG_BASE = import.meta.env.VITE_ZUKAN_IMG_BASE ?? 'https://zukan.pokemon.co.jp/zukan-api/up/images/index/'
 
 type RawPokemon = {
   id: string; n: number; fn: number; fg: number
@@ -100,10 +103,10 @@ export const getAbilities = (lang?: string): Promise<AbilityEntry[]> => load('ab
 export const getItems = (lang?: string): Promise<ItemEntry[]> => load('items', lang ?? currentLang.value)
 export const getDexList = (lang?: string): Promise<DexListEntry[]> => load('dexList', lang ?? currentLang.value)
 export const getGameGroups = (): Promise<GameGroup[]> => loadGlobal('gameGroups')
-export const getLearnsets = () => loadGlobal<Record<string, Record<string, unknown>>>('learnsets')
+export const getLearnsets = (): Promise<Learnsets> => loadGlobal<Learnsets>('learnsets')
 
 // ── 对战使用率数据 ──
 export const getBattleSeasons = (game = 'scvi'): Promise<BattleSeason[]> => loadGlobal(`battle-usage/${game}/rankmatch`)
 export const getBattleTournaments = (game = 'scvi'): Promise<BattleSeason[]> => loadGlobal(`battle-usage/${game}/internet`)
 export const getBattleUsagePokemon = (game: string, cId: string): Promise<BattleUsagePokemonItem[]> => loadGlobal(`battle-usage/${game}/${cId}/pokemon`)
-export const getBattleUsagePDetail = (game: string, cId: string) => loadGlobal(`battle-usage/${game}/${cId}/pdetail`)
+export const getBattleUsagePDetail = (game: string, cId: string): Promise<BattleDetailData> => loadGlobal<BattleDetailData>(`battle-usage/${game}/${cId}/pdetail`)

@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!loaded" class="loading">加载中...</div>
+  <div v-if="error" class="loading" style="color:var(--accent)">{{ error }}</div>
+  <div v-else-if="!loaded" class="loading">加载中...</div>
   <template v-else>
     <div class="page-header">
       <div>
@@ -50,6 +51,7 @@ import PokemonLookup from '../components/PokemonLookup.vue'
 const allAbilities = ref<AbilityEntry[]>([])
 const allPokemon = ref<Pokemon[]>([])
 const loaded = ref(false)
+const error = ref('')
 const search = ref('')
 const page = ref(1)
 const pageSize = 50
@@ -57,10 +59,14 @@ const pageSize = 50
 const { lookupVisible, lookupTitle, lookupResults, lookupByAbility, closeLookup } = usePokemonLookup()
 
 onMounted(async () => {
-  const [a, p] = await Promise.all([getAbilities(), getPokemon()])
-  allAbilities.value = a
-  allPokemon.value = p
-  loaded.value = true
+  try {
+    const [a, p] = await Promise.all([getAbilities(), getPokemon()])
+    allAbilities.value = a
+    allPokemon.value = p
+    loaded.value = true
+  } catch (_e) {
+    error.value = '数据加载失败，请刷新重试'
+  }
 })
 
 const filtered = computed(() => {
