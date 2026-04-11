@@ -74,3 +74,9 @@ export const getItems = (lang) => load('items', lang || currentLang.value)
 export const getDexList = (lang) => load('dexList', lang || currentLang.value)
 export const getGameGroups = () => loadGlobal('gameGroups')
 export const getLearnsets = () => loadGlobal('learnsets')
+
+// ── 对战使用率数据 ──
+export const getBattleSeasons = (game = 'scvi') => loadGlobal(`battle-usage/${game}/rankmatch`)
+export const getBattleTournaments = (game = 'scvi') => loadGlobal(`battle-usage/${game}/internet`)
+export const getBattleUsagePokemon = (game, cId) => loadGlobal(`battle-usage/${game}/${cId}/pokemon`)
+export const getBattleUsagePDetail = (game, cId) => loadGlobal(`battle-usage/${game}/${cId}/pdetail`)

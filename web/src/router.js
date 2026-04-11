@@ -8,6 +8,7 @@ import AbilityList from './views/AbilityList.vue'
 import ItemList from './views/ItemList.vue'
 import RibbonList from './views/RibbonList.vue'
 import About from './views/About.vue'
+import BattleUsage from './views/BattleUsage.vue'
 
 export default createRouter({
   history: createWebHistory('/pokedex/'),
@@ -25,6 +26,7 @@ export default createRouter({
     { path: '/natures', component: NatureList },
     { path: '/items', component: ItemList },
     { path: '/ribbons', component: RibbonList },
+    { path: '/battle-usage', component: BattleUsage },
     { path: '/about', component: About },
   ],
 })
