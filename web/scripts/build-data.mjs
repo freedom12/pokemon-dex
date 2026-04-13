@@ -702,7 +702,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 
   // 道具（精灵球已有，加上完整道具名称列表）
   const itemNames = [];
-  for (let i = 1; i <= 2000; i++) {
+  for (let i = 1; i <= 3000; i++) {
     const key = `itemname:ITEMNAME_${String(i).padStart(3, "0")}`;
     const name = t(key);
     if (name && name !== key) itemNames.push({ id: i, name });
