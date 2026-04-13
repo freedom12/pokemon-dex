@@ -11,7 +11,7 @@
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
 
-const BASE = import.meta.env.BASE_URL + 'img/game_icon/'
+const BASE = import.meta.env.BASE_URL + 'img/software_icon/'
 
 const props = defineProps({
   sid: { type: String, default: '' },
