@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, ZUKAN_IMG_BASE, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, type GameGroup, type Pokemon, type MoveEntry } from '../data'
 import type { DetailedPokemon, ZukanDesc, PokemonStats, TypeEntry } from '../types'
 import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -304,8 +304,8 @@ async function loadData() {
     const ga = ((descsMap as Record<string, unknown>)._g || []) as Array<string[]>
     pokemon.value = {
       ...base,
-      image: ext.i ? ZUKAN_IMG_BASE + ext.i + '.png' : '',
-      imageFemale: ext.if ? ZUKAN_IMG_BASE + ext.if + '.png' : '',
+      image: base.image,
+      imageFemale: base.imageFemale,
       zukanDescs: (ext.z as Array<[number, string]> || []).map((zd): ZukanDesc => {
         const sids: string[] = ga[zd[0]] || []
         return {

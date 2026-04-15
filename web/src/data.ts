@@ -53,7 +53,6 @@ export const getRibbons = async (lang?: string) => {
   cache[key] = data
   return data
 }
-export const getNatureEffects = (): Promise<{ id: string; plus: string; minus: string }[]> => loadGlobal('natures')
 
 const ICON_BASE = import.meta.env.VITE_ICON_BASE ?? 'https://resource.pokemon-home.com/battledata/img/pokei128/'
 export const ZUKAN_IMG_BASE = import.meta.env.VITE_ZUKAN_IMG_BASE ?? 'https://zukan.pokemon.co.jp/zukan-api/up/images/index/'
@@ -84,6 +83,8 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
       dm?: number
       ns?: number
       ag?: string[]
+      i?: string
+      if?: string
     }>
   >('pokemon')
   const typeMap = Object.fromEntries((await getTypes(language)).map((t) => [t.id, t]))
@@ -131,6 +132,8 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
       isDMax: !!rootEntry.dm,
       isInNumberSort: !!rootEntry.ns,
       appearGames: rootEntry.ag ?? [],
+      image: rootEntry.i ? ZUKAN_IMG_BASE + rootEntry.i + '.png' : '',
+      imageFemale: rootEntry.if ? ZUKAN_IMG_BASE + rootEntry.if + '.png' : '',
     }]
   })
   cache[key] = data
@@ -171,7 +174,26 @@ export const getMoves = async (lang?: string): Promise<MoveEntry[]> => {
     typeColor: typeColorMap[configMap[m.id]?.type] || '',
   }))
 }
-export const getNatures = (lang?: string): Promise<NatureEntry[]> => load('natures', lang ?? currentLang.value)
+export const getNatures = async (lang?: string): Promise<NatureEntry[]> => {
+  const language = lang ?? currentLang.value
+  const key = `${language}/natures`
+  if (cache[key]) return cache[key] as NatureEntry[]
+  const names = await load<{ id: string; name: string; desc: string }[]>('natures', language)
+  const configs = await loadGlobal<{ id: string; plus: string; minus: string }[]>('natures')
+  const statNames = await load<{ id: string; name: string }[]>('stats', language)
+  const statMap = Object.fromEntries(statNames.map((s) => [s.id, s.name]))
+  const configMap = Object.fromEntries(configs.map((c) => [c.id, c]))
+  const data: NatureEntry[] = names.map((n) => {
+    const cfg = configMap[n.id]
+    return {
+      ...n,
+      plus: cfg ? statMap[cfg.plus] || '' : '',
+      minus: cfg ? statMap[cfg.minus] || '' : '',
+    }
+  })
+  cache[key] = data
+  return data
+}
 export const getBalls = (lang?: string) => load('balls', lang ?? currentLang.value)
 export const getRegions = async (lang?: string) => {
   const language = lang ?? currentLang.value

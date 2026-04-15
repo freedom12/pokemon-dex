@@ -409,6 +409,16 @@ const pokemonStatic = dictRaw
     if (d.isDMax === 1) entry.dm = 1;
     if (d.isInNumberSort === 1) entry.ns = 1;
     if (d.appearSoftwareAper?.length) entry.ag = d.appearSoftwareAper;
+    // 图鉴大图（语言无关）
+    const zukanKey = `${dexNum}_${d.formNo || 0}_0_${d.isDMax || 0}`;
+    let image = zukanImageMap[zukanKey] || "";
+    if (specialZukanKeyMap.hasOwnProperty(d.id)) {
+      image = zukanOrgImageMap[specialZukanKeyMap[d.id]];
+    }
+    if (image) entry.i = image.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
+    const zukanKeyFemale = `${dexNum}_${d.formNo || 0}_1_${d.isDMax || 0}`;
+    const imageFemale = zukanImageMap[zukanKeyFemale] || "";
+    if (imageFemale) entry.if = imageFemale.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
     return entry;
   });
 
@@ -450,25 +460,19 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   const abMap = {};
   for (const ab of abilityRaw) abMap[ab.id] = t(ab.ms);
 
-  // 性格作用表（仅包含 id 与加成/减成技能 id，放到 data 根目录）
-  const natureEffects = temperRaw.map((pe) => ({
-    id: pe.id,
-    plus: pe.mdAbilityPlus || "",
-    minus: pe.mdAbilityMinus || "",
-  }));
-  writeFileSync(resolve(OUT, "natures.json"), JSON.stringify(natureEffects));
-
   const natures = temperRaw.map((pe) => {
     const rawDesc = t(pe.mstext);
     const desc = rawDesc.replace(/\[VAR [^\]]+\]/g, "").trim();
     return {
       id: pe.id,
       name: t(pe.ms),
-      plus: abMap[pe.mdAbilityPlus] || "",
-      minus: abMap[pe.mdAbilityMinus] || "",
       desc: desc || "",
     };
   });
+
+  // 能力值名称（用于性格加成/减成显示）
+  const statNames = abilityRaw.map((ab) => ({ id: ab.id, name: t(ab.ms) }));
+  writeFileSync(resolve(langOut, "stats.json"), JSON.stringify(statNames));
 
   // 精灵球
   const balls = ballsRaw
@@ -692,19 +696,8 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const zukanDescs = getZukanDescs(dexNum, d.formNo || 0);
     const icon = imageMap[d.mdPokemonImage] || "";
     const iconFemale = imageFemaleMap[d.mdPokemonImage] || "";
-    const zukanKey = `${dexNum}_${d.formNo || 0}_0_${d.isDMax || 0}`;
-    let image = zukanImageMap[zukanKey] || "";
-    if (specialZukanKeyMap.hasOwnProperty(d.id)) {
-      image = zukanOrgImageMap[specialZukanKeyMap[d.id]];
-    }
-    const zukanKeyFemale = `${dexNum}_${d.formNo || 0}_1_${d.isDMax || 0}`;
-    const imageFemale = zukanImageMap[zukanKeyFemale] || "";
     // 仅在详情页使用的扩展数据单独收集
     const ext = {};
-    if (image)
-      ext.i = image.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
-    if (imageFemale)
-      ext.if = imageFemale.replace(ZUKAN_IMG_PREFIX, "").replace(/\.png$/, "");
     if (zukanDescs.length > 0) ext.z = zukanDescs;
     if (Object.keys(ext).length) pokemonExtras[d.id] = ext;
     const entry = {
@@ -818,6 +811,14 @@ writeFileSync(resolve(OUT, "types.json"), JSON.stringify(typeConfig));
 writeFileSync(resolve(OUT, "moves.json"), JSON.stringify(moveConfig));
 writeFileSync(resolve(OUT, "dexList.json"), JSON.stringify(dexListConfig));
 writeFileSync(resolve(OUT, "pokemon.json"), JSON.stringify(pokemonStatic));
+
+// 性格全局配置（stat ID）
+const natureConfig = temperRaw.map((pe) => ({
+  id: pe.id,
+  plus: pe.mdAbilityPlus || "",
+  minus: pe.mdAbilityMinus || "",
+}));
+writeFileSync(resolve(OUT, "natures.json"), JSON.stringify(natureConfig));
 
 // 区域全局配置
 const regionConfig = regionsRaw.map((r) => ({ id: r.id, no: r.no }));

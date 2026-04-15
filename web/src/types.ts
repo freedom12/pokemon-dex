@@ -45,6 +45,8 @@ export interface Pokemon {
   isDMax: boolean
   isInNumberSort: boolean
   appearGames: string[]
+  image: string
+  imageFemale: string
 }
 
 export interface ZukanDesc {
@@ -60,8 +62,6 @@ export interface AbilityWithDesc {
 
 export type DetailedPokemon = Omit<Pokemon, 'abilities'> & {
   abilities: AbilityWithDesc[]
-  image: string
-  imageFemale: string
   zukanDescs: ZukanDesc[]
 }
 
