@@ -13,14 +13,14 @@ export const VG_LABELS: Record<string, string> = {
   'black-2-white-2': '黑2/白2',
   'black-white': '黑/白',
   'heartgold-soulsilver': '心金/魂银',
-  'platinum': '白金',
+  platinum: '白金',
   'diamond-pearl': '钻石/珍珠',
   'firered-leafgreen': '火红/叶绿',
-  'emerald': '绿宝石',
+  emerald: '绿宝石',
   'ruby-sapphire': '红宝石/蓝宝石',
-  'crystal': '水晶',
+  crystal: '水晶',
   'gold-silver': '金/银',
-  'yellow': '黄',
+  yellow: '黄',
   'red-blue': '红/蓝',
 }
 

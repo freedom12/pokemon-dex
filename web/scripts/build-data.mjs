@@ -293,7 +293,6 @@ const catRaw = loadJson("category.json");
 const heightRaw = loadJson("height.json");
 const weightRaw = loadJson("weight.json");
 const colorRaw = loadJson("color.json");
-const planRaw = loadJson("plan.json");
 const softRaw = loadJson("software.json");
 
 const personalMap = {};
@@ -312,7 +311,106 @@ for (const d of dictRaw) {
   }
 }
 
-// 奖章结构数据（不再单独输出到根目录，已按语言生成）
+const typeConfig = pokemonTypesRaw.map((ty) => ({
+  id: ty.id,
+  color: ty.color,
+  image: ty.image,
+  sort: ty.sort,
+  weakTo: ty.mdTypes2_0 || [],
+  resistTo: ty.mdTypes0_5 || [],
+  immuneTo: ty.mdTypes0_0 || [],
+}));
+const moveConfig = wazaRaw.map((w) => ({
+  id: w.id,
+  type: w.mdPokemonType,
+  categoryId: w.mdWazaCategory || "",
+}));
+
+const dmById = {};
+for (const dm of dictMgmtRaw) dmById[dm.id] = dm;
+function getSoftwareIds(dm) {
+  if (dm.mdSoftwareIds && dm.mdSoftwareIds.length > 0)
+    return dm.mdSoftwareIds;
+  if (dm.hostDicId && dmById[dm.hostDicId])
+    return getSoftwareIds(dmById[dm.hostDicId]);
+  return [];
+}
+const dexListConfig = dictMgmtRaw
+  .sort((a, b) => a.sortOrder - b.sortOrder)
+  .map((dm) => {
+    const pokemonIds = (
+      (() => {
+        try {
+          return loadJson(`dictionarySW${dm.dicMdName.replace("SW", "")}.json`).map((e) => e.mdDicId);
+        } catch {
+          return [];
+        }
+      })()
+    );
+    const softwareIds = getSoftwareIds(dm);
+    return { id: dm.id, softwareIds, pokemonIds };
+  })
+  .filter((d) => d.pokemonIds.length > 0);
+
+const colorHexMap = Object.fromEntries(colorRaw.map((c) => [c.id, c.color]));
+const pokemonStatic = dictRaw
+  .filter((d) => d.dictionaryId > 0)
+  .filter(
+    (d) =>
+      !(
+        formChangeRestrictedDexNums.has(d.dictionaryId) &&
+        !formChangeAllowedIds.has(d.id)
+      ),
+  )
+  .map((d) => {
+    const dexNum = d.dictionaryId;
+    const psId = `PS${String(dexNum).padStart(4, '0')}${String(d.formNo || 0).padStart(3, '0')}`;
+    const stats = personalMap[psId];
+    const evo = evoMap[d.mdEvoPatId];
+    let evoChain = [];
+    let evoTemplate = '';
+    if (evo?.mdPokemonImages?.length > 0) {
+      evoTemplate = evo.templatePrefab || '';
+      evoChain = evo.mdPokemonImages.map((img) => {
+        const numPart = img.replace('DI', '').replace(/[A-Z]$/, '');
+        return {
+          dexNum: parseInt(numPart.substring(0, 4), 10),
+          formNo: parseInt(numPart.substring(4), 10),
+        };
+      });
+    }
+    const icon = imageMap[d.mdPokemonImage] || '';
+    const iconFemale = imageFemaleMap[d.mdPokemonImage] || '';
+    const entry = {
+      id: d.id,
+      n: dexNum,
+      fn: d.formNo || 0,
+      fg: d.formGender,
+      icon: icon ? icon.replace(IMG_BASE, '') : '',
+      icf: iconFemale ? iconFemale.replace(IMG_BASE, '') : '',
+      types: d.mdTypeIds || [],
+      ab: d.mdTokuIds || [],
+      kt: d.mdKata || '',
+      colId: d.mdColor || '',
+      colh: colorHexMap[d.mdColor] || '',
+    };
+    if (stats)
+      entry.st = [
+        stats.hp,
+        stats.atk,
+        stats.def,
+        stats.spatk,
+        stats.spdef,
+        stats.agi,
+      ];
+    if (evoChain.length > 0) entry.evo = evoChain.map((e) => [e.dexNum, e.formNo]);
+    if (evoTemplate) entry.evot = evoTemplate;
+    if (d.isMega === 1) entry.mg = 1;
+    if (d.isDMax === 1) entry.dm = 1;
+    if (d.isInNumberSort === 1) entry.ns = 1;
+    if (d.appearSoftwareAper?.length) entry.ag = d.appearSoftwareAper;
+    return entry;
+  });
 
 // ── 为每种语言生成数据 ──
 for (const [langId, langName, folder, suffix] of LANGS) {
@@ -327,6 +425,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 
   // 属性
   const typeMap = {};
+  const typeNames = [];
   for (const ty of pokemonTypesRaw) {
     typeMap[ty.id] = {
       id: ty.id,
@@ -338,6 +437,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       resistTo: ty.mdTypes0_5 || [],
       immuneTo: ty.mdTypes0_0 || [],
     };
+    typeNames.push({ id: ty.id, name: t(ty.msname) || ty.id });
   }
 
   // 特性
@@ -349,6 +449,15 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   // 性格
   const abMap = {};
   for (const ab of abilityRaw) abMap[ab.id] = t(ab.ms);
+
+  // 性格作用表（仅包含 id 与加成/减成技能 id，放到 data 根目录）
+  const natureEffects = temperRaw.map((pe) => ({
+    id: pe.id,
+    plus: pe.mdAbilityPlus || "",
+    minus: pe.mdAbilityMinus || "",
+  }));
+  writeFileSync(resolve(OUT, "natures.json"), JSON.stringify(natureEffects));
+
   const natures = temperRaw.map((pe) => {
     const rawDesc = t(pe.mstext);
     const desc = rawDesc.replace(/\[VAR [^\]]+\]/g, "").trim();
@@ -371,10 +480,9 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     }))
     .sort((a, b) => a.number - b.number);
 
-  // 区域
+  // 区域（语言版本只保留名称）
   const regions = regionsRaw.map((r) => ({
     id: r.id,
-    no: r.no,
     name: t(r.ms),
   }));
 
@@ -387,7 +495,6 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     desc: t(w.mstext),
     type: w.mdPokemonType,
     typeName: typeMap[w.mdPokemonType]?.name || "",
-    typeColor: typeMap[w.mdPokemonType]?.color || "#999",
     categoryId: w.mdWazaCategory || "",
     category: wcMap[w.mdWazaCategory] || "",
   }));
@@ -644,62 +751,31 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
   pokemon.sort((a, b) => a.n - b.n || a.fn - b.fn);
 
-  // 计划/版本
-  const plans = planRaw.map((p) => ({
-    id: p.id,
-    isFree: p.isFree === 1,
-    name: t(p.msname),
-    info: t(p.msinfo),
-  }));
   const softwares = softRaw
     .filter((s) => s.msname)
     .map((s) => ({
       id: s.id,
-      romId: s.romId,
-      gen: s.gen,
       name: t(s.msname),
-      region: t(s.msregion),
     }))
     .filter((s) => s.name && s.name !== s.id);
-  // 图鉴列表
-  // 构建 hostDicId → mdSoftwareIds 映射（子图鉴继承主图鉴的游戏ID）
-  const dmById = {};
-  for (const dm of dictMgmtRaw) dmById[dm.id] = dm;
-  function getSoftwareIds(dm) {
-    if (dm.mdSoftwareIds && dm.mdSoftwareIds.length > 0)
-      return dm.mdSoftwareIds;
-    if (dm.hostDicId && dmById[dm.hostDicId])
-      return getSoftwareIds(dmById[dm.hostDicId]);
-    return [];
-  }
+  const dexListValidIds = new Set(dexListConfig.map((d) => d.id));
   const dexList = dictMgmtRaw
     .sort((a, b) => a.sortOrder - b.sortOrder)
+    .filter((dm) => dexListValidIds.has(dm.id))
     .map((dm) => {
       const name = t(dm.msRegionDicName);
-      const swFile = `dictionarySW${dm.dicMdName.replace("SW", "")}.json`;
-      let entries = [];
-      try {
-        entries = loadJson(swFile);
-      } catch {}
-      const pokemonIds = entries.map((e) => e.mdDicId);
-      const softwareIds = getSoftwareIds(dm);
-      return { id: dm.id, name: name || dm.dicMdName, softwareIds, pokemonIds };
-    })
-    .filter((d) => d.pokemonIds.length > 0);
+      return { id: dm.id, name: name || dm.dicMdName };
+    });
   const abilities = Object.values(tokuseiMap).filter((a) => a.name);
-  const typeList = Object.values(typeMap).sort((a, b) => a.sort - b.sort);
 
-  // 奖章（使用 ribbon_SV 文本，最完整）
+  // 奖章（语言版本只保留名称和描述）
   const ribbons = ribbonRaw
     .map((r) => {
-      const idx = r.id.slice(2); // "RB000" -> "000", "RB100" -> "100"
+      const idx = r.id.slice(2);
       const name = t(`ribbon_SV:mes_ribbon_name_${idx}`);
       const desc = t(`ribbon_SV:mes_ribbon_info_${idx}`);
       return {
         id: r.id,
-        order: r.order,
-        image: r.image_a,
-        hasAlt: !!r.image_b,
         name: name || "",
         desc: desc || "",
       };
@@ -719,12 +795,11 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     resolve(langOut, "pokemon-descs.json"),
     JSON.stringify({ _g: gIndex, ...pokemonExtras }),
   );
-  writeFileSync(resolve(langOut, "types.json"), JSON.stringify(typeList));
+  writeFileSync(resolve(langOut, "types.json"), JSON.stringify(typeNames));
   writeFileSync(resolve(langOut, "moves.json"), JSON.stringify(moves));
   writeFileSync(resolve(langOut, "natures.json"), JSON.stringify(natures));
   writeFileSync(resolve(langOut, "balls.json"), JSON.stringify(balls));
   writeFileSync(resolve(langOut, "regions.json"), JSON.stringify(regions));
-  writeFileSync(resolve(langOut, "plans.json"), JSON.stringify(plans));
   writeFileSync(resolve(langOut, "softwares.json"), JSON.stringify(softwares));
   writeFileSync(resolve(langOut, "dexList.json"), JSON.stringify(dexList));
   writeFileSync(resolve(langOut, "abilities.json"), JSON.stringify(abilities));
@@ -739,6 +814,54 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 // 语言列表元数据
 const langMeta = LANGS.map(([id, name]) => ({ id, name }));
 writeFileSync(resolve(OUT, "langs.json"), JSON.stringify(langMeta));
+writeFileSync(resolve(OUT, "types.json"), JSON.stringify(typeConfig));
+writeFileSync(resolve(OUT, "moves.json"), JSON.stringify(moveConfig));
+writeFileSync(resolve(OUT, "dexList.json"), JSON.stringify(dexListConfig));
+writeFileSync(resolve(OUT, "pokemon.json"), JSON.stringify(pokemonStatic));
+
+// 区域全局配置
+const regionConfig = regionsRaw.map((r) => ({ id: r.id, no: r.no }));
+writeFileSync(resolve(OUT, "regions.json"), JSON.stringify(regionConfig));
+
+// 奖章全局配置
+const ribbonConfig = ribbonRaw
+  .map((r) => ({
+    id: r.id,
+    order: r.order,
+    image: r.image_a,
+    hasAlt: !!r.image_b,
+  }))
+  .sort((a, b) => a.order - b.order);
+writeFileSync(resolve(OUT, "ribbons.json"), JSON.stringify(ribbonConfig));
+
+// 游戏版本全局配置（region 只存 ID）
+const msToRegionId = Object.fromEntries(regionsRaw.map((r) => [r.ms, r.id]));
+function findRegionId(msregion) {
+  if (!msregion) return "";
+  if (msToRegionId[msregion]) return msToRegionId[msregion];
+  const mrKey = msregion.includes(":") ? msregion.split(":").pop() : msregion;
+  const swSuffix = mrKey.includes("MAPNAME_") ? mrKey.split("MAPNAME_").pop() : mrKey;
+  let bestRid = "";
+  let bestLen = 0;
+  for (const [ms, rid] of Object.entries(msToRegionId)) {
+    const msKey = ms.includes(":") ? ms.split(":").pop() : ms;
+    const suffix = msKey.includes("MAPNAME_") ? msKey.split("MAPNAME_").pop() : msKey;
+    if (swSuffix.endsWith(suffix) && suffix.length > bestLen) {
+      bestRid = rid;
+      bestLen = suffix.length;
+    }
+  }
+  return bestRid;
+}
+const softwareConfig = softRaw
+  .filter((s) => s.msname)
+  .map((s) => ({
+    id: s.id,
+    romId: s.romId,
+    gen: s.gen,
+    regionId: findRegionId(s.msregion),
+  }));
+writeFileSync(resolve(OUT, "softwares.json"), JSON.stringify(softwareConfig));
 
 // 游戏组（用于详情页显示游戏可用性）
 const gameGroups = softAppearRaw
