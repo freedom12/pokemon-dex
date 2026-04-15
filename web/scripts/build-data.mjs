@@ -407,7 +407,11 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   const wtMap = {};
   for (const w of weightRaw) wtMap[w.id] = t(w.ms);
   const clMap = {};
-  for (const c of colorRaw) clMap[c.id] = t(c.ms);
+  const clHexMap = {};
+  for (const c of colorRaw) {
+    clMap[c.id] = t(c.ms);
+    clHexMap[c.id] = c.color;
+  }
 
   // 构建图鉴描述：直接从文本中扫描所有 zukan_comment_* 段落
   const zukanGames = [
@@ -618,6 +622,8 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     if (htMap[d.mdHeightId]) entry.ht = htMap[d.mdHeightId];
     if (wtMap[d.mdWeightId]) entry.wt = wtMap[d.mdWeightId];
     if (clMap[d.mdColor]) entry.col = clMap[d.mdColor];
+    if (clHexMap[d.mdColor]) entry.colh = clHexMap[d.mdColor];
+    if (d.mdKata) entry.kt = d.mdKata;
     if (stats)
       entry.st = [
         stats.hp,

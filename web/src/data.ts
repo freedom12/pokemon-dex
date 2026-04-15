@@ -51,7 +51,7 @@ type RawPokemon = {
   id: string; n: number; fn: number; fg: number
   icon?: string; icf?: string; name: string; form?: string
   types?: [string, string, string][]
-  cat?: string; ht?: string; wt?: string; col?: string; ab?: string[]
+  cat?: string; ht?: string; wt?: string; col?: string; colh?: string; kt?: string; ab?: string[]
   st?: number[]; evo?: [number, number][]; evot?: string
   mg?: unknown; dm?: unknown; ns?: unknown; ag?: string[]
 }
@@ -75,6 +75,8 @@ async function loadPokemon(lang: string): Promise<Pokemon[]> {
     height: p.ht ?? '',
     weight: p.wt ?? '',
     color: p.col ?? '',
+    colorHex: p.colh ?? '',
+    shapeId: p.kt ?? '',
     abilities: p.ab ?? [],
     stats: p.st
       ? { hp: p.st[0], atk: p.st[1], def: p.st[2], spatk: p.st[3], spdef: p.st[4], agi: p.st[5], total: p.st.reduce((a, b) => a + b, 0) }

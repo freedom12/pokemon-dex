@@ -50,9 +50,14 @@
         <!-- 基本信息 -->
         <div class="detail-info-block">
           <div class="info-row"><span class="info-label">分类</span><span>{{ pokemon.category || '—' }}</span></div>
-          <div class="info-row"><span class="info-label">身高</span><span>{{ pokemon.height || '—' }}</span></div>
-          <div class="info-row"><span class="info-label">体重</span><span>{{ pokemon.weight || '—' }}</span></div>
-          <div class="info-row"><span class="info-label">颜色</span><span>{{ pokemon.color || '—' }}</span></div>
+          <div class="info-row-pair">
+            <span class="info-label">身高</span><span class="info-val">{{ pokemon.height || '—' }}</span>
+            <span class="info-label">体重</span><span class="info-val">{{ pokemon.weight || '—' }}</span>
+          </div>
+          <div class="info-row-pair">
+            <span class="info-label">颜色</span><span class="info-val"><ColorBadge :name="pokemon.color" :hex="pokemon.colorHex" /></span>
+            <span class="info-label">体型</span><span class="info-val" style="display:flex;align-items:center"><ShapeIcon v-if="pokemon.shapeId" :kid="pokemon.shapeId" :size="24" /><template v-else>—</template></span>
+          </div>
         </div>
 
         <!-- 游戏可用性 -->
@@ -156,6 +161,8 @@ import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
+import ShapeIcon from '../components/ShapeIcon.vue'
+import ColorBadge from '../components/ColorBadge.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
 import { buildEvoTree } from '../utils/evo'

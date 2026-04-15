@@ -35,6 +35,8 @@ export interface Pokemon {
   height: string
   weight: string
   color: string
+  colorHex: string
+  shapeId: string
   abilities: string[]
   stats: PokemonStats | null
   evoChain: EvoEntry[]

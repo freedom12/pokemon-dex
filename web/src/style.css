@@ -127,6 +127,9 @@ a:hover { text-decoration: underline; }
 .info-row {
   display: flex; gap: 12px; font-size: 14px; padding: 4px 0;
 }
+.info-row-pair {
+  display: grid; grid-template-columns: 48px 1fr 48px 1fr; gap: 8px; font-size: 14px; padding: 4px 0; align-items: center;
+}
 .info-label {
   color: var(--text2); min-width: 48px;
 }
