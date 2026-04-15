@@ -91,7 +91,7 @@ a:hover { text-decoration: underline; }
 
 /* Stats bar */
 .stat-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-.stat-label { width: 50px; font-size: 13px; color: var(--text2); text-align: right; }
+.stat-label { display: inline-flex; align-items: center; gap: 2px; width: 70px; font-size: 13px; color: var(--text2); justify-content: flex-start; flex-shrink: 0; }
 .stat-val { width: 36px; font-size: 13px; text-align: right; font-weight: 600; }
 .stat-bar-bg {
   flex: 1; height: 10px; background: var(--bg);
@@ -229,8 +229,6 @@ a:hover { text-decoration: underline; }
 }
 
 /* Nature table */
-.nature-table td.plus { color: #4ade80; }
-.nature-table td.minus { color: #f87171; }
 .nature-table td.neutral { color: var(--text2); }
 
 /* About */

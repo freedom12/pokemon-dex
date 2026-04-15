@@ -80,7 +80,7 @@
             种族值 <span style="font-weight:400;color:var(--text2);font-size:13px">合计 {{ pokemon.stats.total }}</span>
           </div>
           <div class="stat-row" v-for="s in statList" :key="s.key">
-            <span class="stat-label">{{ s.label }}</span>
+            <span class="stat-label"><StatIcon :sid="s.sid" :alt="s.label" :label="s.label" :size="20" /></span>
             <span class="stat-val">{{ pokemon.stats[s.key] }}</span>
             <div class="stat-bar-bg">
               <div class="stat-bar" :style="{ width: (pokemon.stats[s.key] / 255 * 100) + '%', background: statColor(pokemon.stats[s.key]) }"></div>
@@ -162,6 +162,7 @@ import PokemonCard from '../components/PokemonCard.vue'
 import GameIcon from '../components/GameIcon.vue'
 import TypeIcon from '../components/TypeIcon.vue'
 import ShapeIcon from '../components/ShapeIcon.vue'
+import StatIcon from '../components/StatIcon.vue'
 import ColorBadge from '../components/ColorBadge.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
@@ -218,13 +219,13 @@ const displayImage = computed(() => {
   return pokemon.value.image || ''
 })
 
-const statList: { key: keyof PokemonStats; label: string }[] = [
-  { key: 'hp', label: 'HP' },
-  { key: 'atk', label: '攻击' },
-  { key: 'def', label: '防御' },
-  { key: 'spatk', label: '特攻' },
-  { key: 'spdef', label: '特防' },
-  { key: 'agi', label: '速度' },
+const statList: { key: keyof PokemonStats; label: string; sid: string }[] = [
+  { key: 'hp', label: 'HP', sid: '01' },
+  { key: 'atk', label: '攻击', sid: '02' },
+  { key: 'def', label: '防御', sid: '03' },
+  { key: 'spatk', label: '特攻', sid: '04' },
+  { key: 'spdef', label: '特防', sid: '05' },
+  { key: 'agi', label: '速度', sid: '06' },
 ]
 
 function statColor(val: number) {

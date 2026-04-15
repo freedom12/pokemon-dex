@@ -155,9 +155,9 @@
                 <div v-for="s in temotiData.seikaku.slice(0, 5)" :key="s.id" class="stat-row-bar">
                   <span class="stat-item-name">
                     {{ getNatureName(s.id) }}
-                    <template v-if="getNatureEffect(s.id)?.plus !== '无'">
-                      <span class="nature-plus">+{{ getNatureEffect(s.id).plus }}</span>
-                      <span class="nature-minus">-{{ getNatureEffect(s.id).minus }}</span>
+                    <template v-if="getNatureStatSids(s.id)">
+                      <img :src="addIconSrc" alt="+" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.plusSid" :size="14" />
+                      <img :src="decIconSrc" alt="-" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.minusSid" :size="14" />
                     </template>
                   </span>
                   <div class="stat-bar-wrap">
@@ -284,6 +284,7 @@ import TypeIcon from '../components/TypeIcon.vue'
 import ItemIcon from '../components/ItemIcon.vue'
 import GameIcon from '../components/GameIcon.vue'
 import IconSelect from '../components/IconSelect.vue'
+import StatIcon from '../components/StatIcon.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
@@ -562,6 +563,18 @@ function getAbilityName(id: number | string): string { return allAbilities.value
 function getNatureName(id: number | string): string { return allNatures.value[`PE${PAD4(id)}`]?.name || `性格#${id}` }
 function getNatureEffect(id: number | string) { return allNatures.value[`PE${PAD4(id)}`] || null }
 function getTypeName(id: number | string): string { return typeMap.value[`TY${PAD4(id)}`]?.name || `属性#${id}` }
+
+const STAT_ICON_BASE = import.meta.env.BASE_URL + 'img/statistic_icon/'
+const addIconSrc = STAT_ICON_BASE + 'statistic_add.png'
+const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
+const natureStatSids = ['02', '03', '06', '04', '05']
+function getNatureStatSids(id: number | string): { plusSid: string; minusSid: string } | null {
+  const num = parseInt(String(id), 10)
+  if (num % 6 === 0) return null
+  const row = Math.floor(num / 5)
+  const col = num % 5
+  return { plusSid: natureStatSids[row], minusSid: natureStatSids[col] }
+}
 
 </script>
 
