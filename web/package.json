@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "data": "node scripts/build-data.mjs",
+    "fetch-moves": "node scripts/fetch-moves.mjs",
     "fetch-learnsets": "node scripts/fetch-learnsets.mjs",
     "fetch-battle-usage-scvi": "node scripts/fetch-battle-usage-scvi.mjs",
     "fetch-battle-usage-swsh": "node scripts/fetch-battle-usage-swsh.mjs",

@@ -320,11 +320,30 @@ const typeConfig = pokemonTypesRaw.map((ty) => ({
   resistTo: ty.mdTypes0_5 || [],
   immuneTo: ty.mdTypes0_0 || [],
 }));
-const moveConfig = wazaRaw.map((w) => ({
-  id: w.id,
-  type: w.mdPokemonType,
-  categoryId: w.mdWazaCategory || "",
-}));
+// 读取已有的 moves.json 以保留 PokeAPI 数据（power/accuracy/pp 等）
+const existingMovesPath = resolve(OUT, "moves.json");
+const existingMovesMap = {};
+if (existsSync(existingMovesPath)) {
+  try {
+    const arr = JSON.parse(readFileSync(existingMovesPath, "utf-8"));
+    for (const m of arr) existingMovesMap[m.id] = m;
+  } catch { /* ignore */ }
+}
+const moveConfig = wazaRaw.map((w) => {
+  const prev = existingMovesMap[w.id];
+  const base = {
+    id: w.id,
+    type: w.mdPokemonType,
+    categoryId: w.mdWazaCategory || "",
+  };
+  // 保留 PokeAPI 字段
+  if (prev) {
+    for (const k of ['power', 'accuracy', 'pp', 'priority', 'effectChance', 'target']) {
+      if (prev[k] !== undefined) base[k] = prev[k];
+    }
+  }
+  return base;
+});
 
 const dmById = {};
 for (const dm of dictMgmtRaw) dmById[dm.id] = dm;

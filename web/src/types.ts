@@ -82,6 +82,12 @@ export interface MoveEntry {
   categoryId?: string
   category?: string
   desc?: string
+  power?: number | null
+  accuracy?: number | null
+  pp?: number | null
+  priority?: number
+  effectChance?: number | null
+  target?: string
   [key: string]: unknown
 }
 

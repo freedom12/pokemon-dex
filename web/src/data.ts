@@ -162,19 +162,22 @@ export const getMoves = async (lang?: string): Promise<MoveEntry[]> => {
     Array<{ id: string; name: string; desc: string; category: string }>
   >('moves', language)
   const configs = await loadGlobal<
-    Array<{ id: string; type: string; categoryId: string }>
+    Array<{ id: string; type: string; categoryId: string; power?: number | null; accuracy?: number | null; pp?: number | null; priority?: number; effectChance?: number | null; target?: string }>
   >('moves')
   const types = await getTypes(language)
   const typeNameMap = Object.fromEntries(types.map((t) => [t.id, t.name]))
   const typeColorMap = Object.fromEntries(types.map((t) => [t.id, t.color]))
-  const configMap: Record<string, { id: string; type: string; categoryId: string }> = {}
+  const configMap: Record<string, (typeof configs)[number]> = {}
   for (const c of configs) configMap[c.id] = c
-  return names.map((m) => ({
-    ...configMap[m.id],
-    ...m,
-    typeName: typeNameMap[configMap[m.id]?.type] || '',
-    typeColor: typeColorMap[configMap[m.id]?.type] || '',
-  }))
+  return names.map((m) => {
+    const cfg = configMap[m.id]
+    return {
+      ...cfg,
+      ...m,
+      typeName: typeNameMap[cfg?.type] || '',
+      typeColor: typeColorMap[cfg?.type] || '',
+    }
+  })
 }
 export const getNatures = async (lang?: string): Promise<NatureEntry[]> => {
   const language = lang ?? currentLang.value

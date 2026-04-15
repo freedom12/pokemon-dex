@@ -32,6 +32,9 @@
             <th>招式名称</th>
             <th>属性</th>
             <th>分类</th>
+            <th style="width:60px;text-align:center">威力</th>
+            <th style="width:60px;text-align:center">命中</th>
+            <th style="width:50px;text-align:center">PP</th>
             <th>描述</th>
             <th style="width:36px"></th>
           </tr>
@@ -44,6 +47,9 @@
               <TypeIcon :tid="m.type" :alt="m.typeName" />
             </td>
             <td><MoveCategoryIcon :cid="m.categoryId" :alt="m.category" :size="32" /></td>
+            <td style="text-align:center;font-size:13px">{{ m.power ?? '—' }}</td>
+            <td style="text-align:center;font-size:13px">{{ m.accuracy != null ? m.accuracy + '%' : '—' }}</td>
+            <td style="text-align:center;font-size:13px">{{ m.pp ?? '—' }}</td>
             <td style="font-size:13px;color:var(--text2);max-width:400px">{{ m.desc }}</td>
             <td>
               <button class="lookup-btn" title="查看可学习此招式的宝可梦" @click="lookupMove(m)">🔍</button>
