@@ -90,6 +90,8 @@ export interface NatureEntry {
   name: string
   plus: string
   minus: string
+  plusId: string
+  minusId: string
   desc?: string
 }
 

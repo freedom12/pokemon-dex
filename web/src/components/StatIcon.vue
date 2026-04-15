@@ -1,7 +1,7 @@
 <template>
   <span v-if="label" style="display:inline-flex;align-items:center;gap:2px">
     <img
-      :src="`${BASE}statistic_${sid}.png`"
+      :src="`${BASE}${sid}.png`"
       :alt="alt || label"
       :title="alt || label"
       :style="imgStyle"
@@ -11,7 +11,7 @@
   </span>
   <img
     v-else
-    :src="`${BASE}statistic_${sid}.png`"
+    :src="`${BASE}${sid}.png`"
     :alt="alt"
     :title="alt"
     :style="imgStyle"

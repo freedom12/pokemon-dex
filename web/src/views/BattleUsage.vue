@@ -155,9 +155,9 @@
                 <div v-for="s in temotiData.seikaku.slice(0, 5)" :key="s.id" class="stat-row-bar">
                   <span class="stat-item-name">
                     {{ getNatureName(s.id) }}
-                    <template v-if="getNatureStatSids(s.id)">
-                      <img :src="addIconSrc" alt="+" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.plusSid" :alt="getNatureEffect(s.id)?.plus" :size="14" />
-                      <img :src="decIconSrc" alt="-" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.minusSid" :alt="getNatureEffect(s.id)?.minus" :size="14" />
+                    <template v-if="getNatureEffect(s.id)?.plusId && getNatureEffect(s.id)!.plusId !== 'AB0000'">
+                      <img :src="addIconSrc" alt="+" style="width:12px;height:12px" /><StatIcon :sid="getNatureEffect(s.id)!.plusId" :alt="getNatureEffect(s.id)?.plus" :size="14" />
+                      <img :src="decIconSrc" alt="-" style="width:12px;height:12px" /><StatIcon :sid="getNatureEffect(s.id)!.minusId" :alt="getNatureEffect(s.id)?.minus" :size="14" />
                     </template>
                   </span>
                   <div class="stat-bar-wrap">
@@ -312,7 +312,7 @@ const modeOptions = [
 const allPokemon = ref<Pokemon[]>([])
 const pokemonByDexForm = ref(new Map<string, Pokemon>())
 const allMoves = ref<Record<string, { name: string; type: string }>>({})
-const allNatures = ref<Record<string, { name: string; plus: string; minus: string }>>({})
+const allNatures = ref<Record<string, { name: string; plus: string; minus: string; plusId: string; minusId: string }>>({})
 const allAbilities = ref<Record<string, string>>({})
 const allItems = ref<Record<string, string>>({})
 const typeMap = ref<Record<string, { name: string; color: string }>>({})
@@ -385,8 +385,8 @@ onMounted(async () => {
   for (const m of moves) movesMap[m.id] = { name: m.name, type: m.type || '' }
   allMoves.value = movesMap
 
-  const naturesMap: Record<string, { name: string; plus: string; minus: string }> = {}
-  for (const n of natures) naturesMap[n.id] = { name: n.name, plus: n.plus, minus: n.minus }
+  const naturesMap: Record<string, { name: string; plus: string; minus: string; plusId: string; minusId: string }> = {}
+  for (const n of natures) naturesMap[n.id] = { name: n.name, plus: n.plus, minus: n.minus, plusId: n.plusId, minusId: n.minusId }
   allNatures.value = naturesMap
 
   const abilitiesMap: Record<string, string> = {}
@@ -567,14 +567,6 @@ function getTypeName(id: number | string): string { return typeMap.value[`TY${PA
 const STAT_ICON_BASE = import.meta.env.BASE_URL + 'img/statistic_icon/'
 const addIconSrc = STAT_ICON_BASE + 'statistic_add.png'
 const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
-const natureStatSids = ['02', '03', '06', '04', '05']
-function getNatureStatSids(id: number | string): { plusSid: string; minusSid: string } | null {
-  const num = parseInt(String(id), 10)
-  if (num % 6 === 0) return null
-  const row = Math.floor(num / 5)
-  const col = num % 5
-  return { plusSid: natureStatSids[row], minusSid: natureStatSids[col] }
-}
 
 </script>
 

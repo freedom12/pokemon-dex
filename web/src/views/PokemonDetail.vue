@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, getStats, type GameGroup, type Pokemon, type MoveEntry } from '../data'
 import type { DetailedPokemon, ZukanDesc, PokemonStats, TypeEntry } from '../types'
 import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -199,6 +199,7 @@ const learnsetData = ref<Record<string, VgData> | null>(null)
 const movesMap = ref<Record<string, MoveEntry>>({})
 const allLearnsets = ref<Learnsets>({})
 const allTypes = ref<TypeEntry[]>([])
+const statNames = ref<Record<string, string>>({})
 const error = ref('')
 
 // 属性相性计算：每个属性 → 倍率
@@ -257,14 +258,17 @@ const displayImage = computed(() => {
   return pokemon.value.image || ''
 })
 
-const statList: { key: keyof PokemonStats; label: string; sid: string }[] = [
-  { key: 'hp', label: 'HP', sid: '01' },
-  { key: 'atk', label: '攻击', sid: '02' },
-  { key: 'def', label: '防御', sid: '03' },
-  { key: 'spatk', label: '特攻', sid: '04' },
-  { key: 'spdef', label: '特防', sid: '05' },
-  { key: 'agi', label: '速度', sid: '06' },
-]
+const statList = computed(() => {
+  const m = statNames.value
+  return [
+    { key: 'hp' as keyof PokemonStats, label: m['AB0001'] || 'HP', sid: 'AB0001' },
+    { key: 'atk' as keyof PokemonStats, label: m['AB0002'] || '攻击', sid: 'AB0002' },
+    { key: 'def' as keyof PokemonStats, label: m['AB0003'] || '防御', sid: 'AB0003' },
+    { key: 'spatk' as keyof PokemonStats, label: m['AB0005'] || '特攻', sid: 'AB0005' },
+    { key: 'spdef' as keyof PokemonStats, label: m['AB0006'] || '特防', sid: 'AB0006' },
+    { key: 'agi' as keyof PokemonStats, label: m['AB0004'] || '速度', sid: 'AB0004' },
+  ]
+})
 
 function statColor(val: number) {
   if (val < 50) return '#f87171'
@@ -277,9 +281,12 @@ function statColor(val: number) {
 async function loadData() {
   try {
     error.value = ''
-    const [all, gg, sw, allMoves, learnsets, descsMap, abList, typeList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities(), getTypes()])
+    const [all, gg, sw, allMoves, learnsets, descsMap, abList, typeList, statEntries] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities(), getTypes(), getStats()])
   allPokemon.value = all
   allTypes.value = typeList
+  const sMap: Record<string, string> = {}
+  for (const s of statEntries) sMap[s.id] = s.name
+  statNames.value = sMap
   gameGroups.value = gg
   const swMap: Record<string, string> = {}
   for (const s of sw) swMap[s.id] = s.name

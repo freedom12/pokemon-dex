@@ -518,10 +518,11 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   const wtMap = {};
   for (const w of weightRaw) wtMap[w.id] = t(w.ms);
   const clMap = {};
-  const clHexMap = {};
+  const colorNames = [];
   for (const c of colorRaw) {
-    clMap[c.id] = t(c.ms);
-    clHexMap[c.id] = c.color;
+    const name = t(c.ms);
+    clMap[c.id] = name;
+    if (name) colorNames.push({ id: c.id, name });
   }
 
   // 构建图鉴描述：直接从文本中扫描所有 zukan_comment_* 段落
@@ -678,71 +679,23 @@ for (const [langId, langName, folder, suffix] of LANGS) {
       !formChangeAllowedIds.has(d.id)
     )
       continue;
-    const psId = `PS${String(dexNum).padStart(4, "0")}${String(d.formNo || 0).padStart(3, "0")}`;
-    const stats = personalMap[psId];
-    const evo = evoMap[d.mdEvoPatId];
-    let evoChain = [];
-    let evoTemplate = "";
-    if (evo?.mdPokemonImages?.length > 0) {
-      evoTemplate = evo.templatePrefab || "";
-      evoChain = evo.mdPokemonImages.map((img) => {
-        const numPart = img.replace("DI", "").replace(/[A-Z]$/, "");
-        return {
-          dexNum: parseInt(numPart.substring(0, 4), 10),
-          formNo: parseInt(numPart.substring(4), 10),
-        };
-      });
-    }
     const zukanDescs = getZukanDescs(dexNum, d.formNo || 0);
-    const icon = imageMap[d.mdPokemonImage] || "";
-    const iconFemale = imageFemaleMap[d.mdPokemonImage] || "";
     // 仅在详情页使用的扩展数据单独收集
     const ext = {};
     if (zukanDescs.length > 0) ext.z = zukanDescs;
     if (Object.keys(ext).length) pokemonExtras[d.id] = ext;
-    const entry = {
-      id: d.id,
-      n: dexNum,
-      fn: d.formNo || 0,
-      fg: d.formGender,
-      name: nmMap[d.mdNameId] || `#${dexNum}`,
-      types: (d.mdTypeIds || [])
-        .map((tid) =>
-          typeMap[tid] ? [tid, typeMap[tid].name, typeMap[tid].color] : null,
-        )
-        .filter(Boolean),
-      ab: (d.mdTokuIds || [])
-        .map((tid) => tokuseiMap[tid]?.name)
-        .filter(Boolean),
-    };
-    if (icon) entry.icon = icon.replace(IMG_BASE, "");
-    if (iconFemale) entry.icf = iconFemale.replace(IMG_BASE, "");
+    // 多语言文件只保留需要翻译的字段，其余由根 pokemon.json 提供
+    const entry = { id: d.id, _n: dexNum, _fn: d.formNo || 0 };
+    entry.name = nmMap[d.mdNameId] || `#${dexNum}`;
     if (fmMap[d.mdForm]) entry.form = fmMap[d.mdForm];
     if (ctMap[d.mdCateId]) entry.cat = ctMap[d.mdCateId];
     if (htMap[d.mdHeightId]) entry.ht = htMap[d.mdHeightId];
     if (wtMap[d.mdWeightId]) entry.wt = wtMap[d.mdWeightId];
-    if (clMap[d.mdColor]) entry.col = clMap[d.mdColor];
-    if (clHexMap[d.mdColor]) entry.colh = clHexMap[d.mdColor];
-    if (d.mdKata) entry.kt = d.mdKata;
-    if (stats)
-      entry.st = [
-        stats.hp,
-        stats.atk,
-        stats.def,
-        stats.spatk,
-        stats.spdef,
-        stats.agi,
-      ];
-    if (evoChain.length > 0)
-      entry.evo = evoChain.map((e) => [e.dexNum, e.formNo]);
-    if (evoTemplate) entry.evot = evoTemplate;
-    if (d.isMega === 1) entry.mg = 1;
-    if (d.isDMax === 1) entry.dm = 1;
-    if (d.isInNumberSort === 1) entry.ns = 1;
-    if (d.appearSoftwareAper?.length) entry.ag = d.appearSoftwareAper;
     pokemon.push(entry);
   }
-  pokemon.sort((a, b) => a.n - b.n || a.fn - b.fn);
+  pokemon.sort((a, b) => a._n - b._n || a._fn - b._fn);
+  // 排序后移除临时排序字段
+  for (const p of pokemon) { delete p._n; delete p._fn; }
 
   const softwares = softRaw
     .filter((s) => s.msname)
@@ -796,6 +749,7 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   writeFileSync(resolve(langOut, "softwares.json"), JSON.stringify(softwares));
   writeFileSync(resolve(langOut, "dexList.json"), JSON.stringify(dexList));
   writeFileSync(resolve(langOut, "abilities.json"), JSON.stringify(abilities));
+  writeFileSync(resolve(langOut, "colors.json"), JSON.stringify(colorNames));
   writeFileSync(resolve(langOut, "ribbons.json"), JSON.stringify(ribbons));
   writeFileSync(resolve(langOut, "items.json"), JSON.stringify(itemNames));
 

@@ -62,7 +62,7 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
   const key = `${language}/pokemon`
   if (cache[key]) return cache[key] as Pokemon[]
   const localData = await load<
-    Array<{ id?: string; name?: string; form?: string; cat?: string; ht?: string; wt?: string; col?: string }>
+    Array<{ id?: string; name?: string; form?: string; cat?: string; ht?: string; wt?: string }>
   >(`pokemon`, language)
   const rootData = await loadGlobal<
     Array<{
@@ -89,7 +89,9 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
   >('pokemon')
   const typeMap = Object.fromEntries((await getTypes(language)).map((t) => [t.id, t]))
   const abilityMap = Object.fromEntries((await getAbilities(language)).map((a) => [a.id, a.name]))
-  const colorMap = Object.fromEntries((await getColors()).map((c) => [c.id, c.color]))
+  const colorEntries = await getColors(language)
+  const colorHexMap = Object.fromEntries(colorEntries.map((c) => [c.id, c.color]))
+  const colorNameMap = Object.fromEntries(colorEntries.map((c) => [c.id, c.name]))
   const rootMap = Object.fromEntries(rootData.map((r) => [r.id, r]))
   const data: Pokemon[] = localData.flatMap((local) => {
     const rootEntry = rootMap[local.id!]
@@ -111,8 +113,8 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
       category: local.cat ?? '',
       height: local.ht ?? '',
       weight: local.wt ?? '',
-      color: local.col ?? '',
-      colorHex: colorMap[rootEntry.colId ?? ''] ?? '',
+      color: colorNameMap[rootEntry.colId ?? ''] ?? '',
+      colorHex: colorHexMap[rootEntry.colId ?? ''] ?? '',
       shapeId: rootEntry.kt ?? '',
       abilities: (rootEntry.ab ?? []).map((aid) => abilityMap[aid] || aid),
       stats: rootEntry.st
@@ -189,6 +191,8 @@ export const getNatures = async (lang?: string): Promise<NatureEntry[]> => {
       ...n,
       plus: cfg ? statMap[cfg.plus] || '' : '',
       minus: cfg ? statMap[cfg.minus] || '' : '',
+      plusId: cfg?.plus || '',
+      minusId: cfg?.minus || '',
     }
   })
   cache[key] = data
@@ -228,7 +232,17 @@ export const getSoftwares = async (lang?: string): Promise<SoftwareEntry[]> => {
 }
 export const getAbilities = (lang?: string): Promise<AbilityEntry[]> => load('abilities', lang ?? currentLang.value)
 export const getItems = (lang?: string): Promise<ItemEntry[]> => load('items', lang ?? currentLang.value)
-export const getColors = (): Promise<{ id: string; color: string }[]> => loadGlobal('colors')
+export const getColors = async (lang?: string): Promise<{ id: string; color: string; name: string }[]> => {
+  const language = lang ?? currentLang.value
+  const key = `${language}/colors`
+  if (cache[key]) return cache[key] as { id: string; color: string; name: string }[]
+  const configs = await loadGlobal<{ id: string; color: string }[]>('colors')
+  const names = await load<{ id: string; name: string }[]>('colors', language)
+  const nameMap = Object.fromEntries(names.map((n) => [n.id, n.name]))
+  const data = configs.map((c) => ({ ...c, name: nameMap[c.id] || '' }))
+  cache[key] = data
+  return data
+}
 export const getDexList = async (lang?: string): Promise<DexListEntry[]> => {
   const language = lang ?? currentLang.value
   const names = await load<{ id: string; name: string }[]>('dexList', language)
@@ -237,6 +251,7 @@ export const getDexList = async (lang?: string): Promise<DexListEntry[]> => {
   for (const c of configs) configMap[c.id] = c
   return names.map((d) => ({ ...configMap[d.id], ...d }))
 }
+export const getStats = (lang?: string): Promise<{ id: string; name: string }[]> => load('stats', lang ?? currentLang.value)
 export const getGameGroups = (): Promise<GameGroup[]> => loadGlobal('gameGroups')
 export const getLearnsets = (): Promise<Learnsets> => loadGlobal<Learnsets>('learnsets')
 
