@@ -156,8 +156,8 @@
                   <span class="stat-item-name">
                     {{ getNatureName(s.id) }}
                     <template v-if="getNatureStatSids(s.id)">
-                      <img :src="addIconSrc" alt="+" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.plusSid" :size="14" />
-                      <img :src="decIconSrc" alt="-" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.minusSid" :size="14" />
+                      <img :src="addIconSrc" alt="+" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.plusSid" :alt="getNatureEffect(s.id)?.plus" :size="14" />
+                      <img :src="decIconSrc" alt="-" style="width:12px;height:12px" /><StatIcon :sid="getNatureStatSids(s.id)!.minusSid" :alt="getNatureEffect(s.id)?.minus" :size="14" />
                     </template>
                   </span>
                   <div class="stat-bar-wrap">
