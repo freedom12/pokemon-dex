@@ -90,6 +90,17 @@
       </div>
     </div>
 
+    <!-- 属性相性 -->
+    <div class="detail-section" v-if="typeEffList">
+      <h3 class="section-toggle" @click="typeEffOpen = !typeEffOpen">属性相性 <span class="toggle-arrow" :class="{ open: typeEffOpen }">▸</span></h3>
+      <div v-show="typeEffOpen" class="type-eff-bar">
+        <div v-for="e in typeEffList" :key="e.type.id" class="type-eff-item" :title="e.type.name + ' ' + e.mult + '×'">
+          <TypeIcon :tid="e.type.id" :alt="e.type.name" :size="28" />
+          <img :src="effIcon(e.mult)" :alt="e.mult + '×'" class="type-eff-mult-icon" />
+        </div>
+      </div>
+    </div>
+
     <!-- 特性 -->
     <div class="detail-section" v-if="pokemon.abilities.length">
       <h3 class="section-toggle" @click="abilityOpen = !abilityOpen">特性 <span class="toggle-arrow" :class="{ open: abilityOpen }">▸</span></h3>
@@ -154,8 +165,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, ZUKAN_IMG_BASE, type GameGroup, type Pokemon, type MoveEntry } from '../data'
-import type { DetailedPokemon, ZukanDesc, PokemonStats } from '../types'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, ZUKAN_IMG_BASE, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import type { DetailedPokemon, ZukanDesc, PokemonStats, TypeEntry } from '../types'
 import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import PokemonCard from '../components/PokemonCard.vue'
@@ -182,11 +193,38 @@ const softwareMap = ref<Record<string, string>>({})
 const showFemale = ref(false)
 const zukanOpen = ref(true)
 const abilityOpen = ref(true)
+const typeEffOpen = ref(true)
 const evoOpen = ref(true)
 const learnsetData = ref<Record<string, VgData> | null>(null)
 const movesMap = ref<Record<string, MoveEntry>>({})
 const allLearnsets = ref<Learnsets>({})
+const allTypes = ref<TypeEntry[]>([])
 const error = ref('')
+
+// 属性相性计算：每个属性 → 倍率
+const typeEffList = computed(() => {
+  if (!pokemon.value || !allTypes.value.length) return null
+  const myTypeIds = pokemon.value.types.map(t => t.id)
+  const sorted = [...allTypes.value]
+  return sorted.map(atkType => {
+    let mult = 1
+    for (const defId of myTypeIds) {
+      const defType = allTypes.value.find(t => t.id === defId)
+      if (!defType) continue
+      if (defType.weakTo.includes(atkType.id)) mult *= 2
+      else if (defType.resistTo.includes(atkType.id)) mult *= 0.5
+      else if (defType.immuneTo.includes(atkType.id)) mult *= 0
+    }
+    return { type: atkType, mult }
+  })
+})
+
+const EFF_ICON_BASE = import.meta.env.BASE_URL + 'img/effective_icon/'
+
+function effIcon(mult: number) {
+  const code = String(Math.round(mult * 100)).padStart(4, '0')
+  return `${EFF_ICON_BASE}effective_${code}.png`
+}
 
 const {
   lookupVisible: abilityLookupVisible,
@@ -239,8 +277,9 @@ function statColor(val: number) {
 async function loadData() {
   try {
     error.value = ''
-    const [all, gg, sw, allMoves, learnsets, descsMap, abList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities()])
+    const [all, gg, sw, allMoves, learnsets, descsMap, abList, typeList] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities(), getTypes()])
   allPokemon.value = all
+  allTypes.value = typeList
   gameGroups.value = gg
   const swMap: Record<string, string> = {}
   for (const s of sw) swMap[s.id] = s.name
@@ -334,6 +373,15 @@ watch(() => route.params.id, loadData)
 </script>
 
 <style scoped>
+.type-eff-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.type-eff-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.type-eff-mult-icon {
+  width: 28px; height: 28px; object-fit: contain;
+}
 .ability-lookup-btn {
   opacity: 0; background: none; border: none;
   cursor: pointer; font-size: 14px; padding: 2px 6px;
