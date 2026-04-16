@@ -22,7 +22,7 @@
         </thead>
         <tbody>
           <tr v-for="n in natures" :key="n.id">
-            <td style="font-weight:600">{{ n.name }}</td>
+            <td style="font-weight:600;display:flex;align-items:center;gap:4px"><NatureIcon :nid="n.id" :alt="n.name" :size="24" />{{ n.name }}</td>
             <td style="vertical-align:middle"><span v-if="n.plusId && n.plusId !== 'AB0000'" style="display:inline-flex;align-items:center;gap:2px"><img :src="addIcon" alt="增加" style="width:14px;height:14px" /><StatIcon :sid="n.plusId" :label="n.plus" :size="16" /></span><span v-else style="color:var(--text2)">--</span></td>
             <td style="vertical-align:middle"><span v-if="n.minusId && n.minusId !== 'AB0000'" style="display:inline-flex;align-items:center;gap:2px"><img :src="decIcon" alt="减少" style="width:14px;height:14px" /><StatIcon :sid="n.minusId" :label="n.minus" :size="16" /></span><span v-else style="color:var(--text2)">--</span></td>
             <td style="color:var(--text2)">{{ n.desc || '—' }}</td>
@@ -37,6 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { getNatures, type NatureEntry } from '../data'
 import StatIcon from '../components/StatIcon.vue'
+import NatureIcon from '../components/NatureIcon.vue'
 
 const BASE = import.meta.env.BASE_URL + 'img/statistic_icon/'
 const addIcon = BASE + 'statistic_add.png'
