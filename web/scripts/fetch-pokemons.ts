@@ -1,7 +1,7 @@
 /**
  * 从 PokeAPI 拉取完整的原始宝可梦数据（species + 各形态 pokemon）
  *
- * 输出: web/public/data/_pokeapi_pokemons.json
+ * 输出: web/scripts/cache/_pokeapi_pokemons.json
  * 格式: { [dexNum]: { species: {...}, varieties: [ { pokemon: {...} }, ... ] } }
  * 存储 PokeAPI 返回的完整原始 JSON，不做任何字段筛选或转换。
  * 数据的映射和转换统一在 build-data.ts 中完成。
@@ -15,7 +15,7 @@ import { existsSync } from 'fs'
 import { fetchWithRetry, parseArgs, writeJson, readJson, getDirname, sleep } from './lib/utils'
 
 const __dirname = getDirname(import.meta.url)
-const OUT_FILE = resolve(__dirname, '..', 'public', 'data', '_pokeapi_pokemons.json')
+const OUT_FILE = resolve(__dirname, 'cache', '_pokeapi_pokemons.json')
 
 const args = parseArgs()
 const FROM = parseInt(args.from as string) || 1

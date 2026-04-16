@@ -1,7 +1,7 @@
 /**
  * 从 PokeAPI 拉取完整的原始道具数据
  *
- * 输出: web/public/data/_pokeapi_items.json
+ * 输出: web/scripts/cache/_pokeapi_items.json
  * 存储 PokeAPI 返回的完整原始 JSON，不做任何字段筛选或转换。
  * 数据的映射和转换统一在 build-data.ts 中完成。
  *
@@ -13,7 +13,7 @@ import { resolve } from 'path'
 import { fetchWithRetry, parseArgs, runBatch, writeJson, getDirname } from './lib/utils'
 
 const __dirname = getDirname(import.meta.url)
-const OUT_FILE = resolve(__dirname, '..', 'public', 'data', '_pokeapi_items.json')
+const OUT_FILE = resolve(__dirname, 'cache', '_pokeapi_items.json')
 
 const args = parseArgs()
 const FROM = parseInt(args.from as string) || 1

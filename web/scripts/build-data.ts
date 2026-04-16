@@ -11,7 +11,7 @@ const ROOT = resolve(__dirname, '..', '..')
 
 // ── 获取宝可梦图鉴 API 图片数据 ──
 async function fetchZukanImages() {
-  const CACHE = resolve(__dirname, '..', 'public', 'data', '_zukan_cache.json')
+  const CACHE = resolve(__dirname, 'cache', '_zukan_cache.json')
   if (existsSync(CACHE)) {
     console.log('Using cached zukan API data')
     return readJson<any[]>(CACHE)!
@@ -235,7 +235,7 @@ function numToWz(n: number) {
   return `WZ${String(n).padStart(4, '0')}`
 }
 
-const pokeApiMovesPath = resolve(OUT, '_pokeapi_moves.json')
+const pokeApiMovesPath = resolve(__dirname, 'cache', '_pokeapi_moves.json')
 const pokeApiMovesMap: Record<string, any> = {}
 if (existsSync(pokeApiMovesPath)) {
   try {
@@ -264,7 +264,7 @@ const POKEAPI_LANG_MAP: Record<string, string> = {
   'ja-hrkt': 'jpn', ja: 'jpn_kanji', ko: 'kor',
   fr: 'fra', de: 'deu', it: 'ita', es: 'esp',
 }
-const pokeApiItemsPath = resolve(OUT, '_pokeapi_items.json')
+const pokeApiItemsPath = resolve(__dirname, 'cache', '_pokeapi_items.json')
 // itemDescMap: { [langId]: { [normalizedName]: desc } }  — 按名称匹配而非 ID
 const pokeApiItemDescMap: Record<string, Record<string, string>> = {}
 if (existsSync(pokeApiItemsPath)) {
@@ -816,7 +816,7 @@ function extractLearnsetFromPokemon(pokemonData: any): Record<string, LearnsetBu
   return byVg
 }
 
-const pokeApiPokemonsPath = resolve(OUT, '_pokeapi_pokemons.json')
+const pokeApiPokemonsPath = resolve(__dirname, 'cache', '_pokeapi_pokemons.json')
 if (existsSync(pokeApiPokemonsPath)) {
   try {
     const rawData = JSON.parse(readFileSync(pokeApiPokemonsPath, 'utf-8'))
