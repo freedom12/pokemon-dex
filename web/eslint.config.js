@@ -13,5 +13,12 @@ export default [
   },
   ...pluginVue.configs['flat/essential'],
   ...vueTsEslintConfig(),
+  {
+    name: 'scripts/relax-any',
+    files: ['scripts/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
   skipFormatting,
 ]
