@@ -11,12 +11,13 @@
     </div>
     <div style="overflow-x:auto">
       <table class="data-table">
-        <thead><tr><th style="width:50px">#</th><th style="width:48px"></th><th>道具名称</th></tr></thead>
+        <thead><tr><th style="width:50px">#</th><th style="width:48px"></th><th>道具名称</th><th>说明</th></tr></thead>
         <tbody>
           <tr v-for="item in paged" :key="item.id">
             <td style="color:var(--text2);font-size:13px">{{ item.id }}</td>
             <td><ItemIcon :src="`https://resource.pokemon-home.com/battledata/img/item/item_${String(item.id).padStart(4, '0')}.png`" :alt="item.name" /></td>
-            <td style="font-weight:600"><a :href="`https://wiki.52poke.com/wiki/${item.name}`" target="_blank" rel="noopener" class="wiki-link">{{ item.name }}</a></td>
+            <td style="font-weight:600;white-space:nowrap"><a :href="`https://wiki.52poke.com/wiki/${item.name}`" target="_blank" rel="noopener" class="wiki-link">{{ item.name }}</a></td>
+            <td style="color:var(--text2);font-size:13px">{{ item.desc || '' }}</td>
           </tr>
         </tbody>
       </table>
@@ -50,7 +51,7 @@ onMounted(async () => {
 const filtered = computed(() => {
   if (!search.value) return allItems.value
   const q = search.value.toLowerCase()
-  return allItems.value.filter(i => i.name.toLowerCase().includes(q) || String(i.id).includes(q))
+  return allItems.value.filter(i => i.name.toLowerCase().includes(q) || String(i.id).includes(q) || (i.desc && String(i.desc).toLowerCase().includes(q)))
 })
 const totalPages = computed(() => Math.ceil(filtered.value.length / pageSize))
 const paged = computed(() => filtered.value.slice((page.value - 1) * pageSize, page.value * pageSize))

@@ -258,6 +258,46 @@ if (existsSync(pokeApiMovesPath)) {
   } catch { /* ignore */ }
 }
 
+// 读取 PokeAPI 道具原始数据并建立映射
+const POKEAPI_LANG_MAP: Record<string, string> = {
+  'zh-hans': 'sch', 'zh-hant': 'tch', en: 'usa',
+  'ja-hrkt': 'jpn', ja: 'jpn_kanji', ko: 'kor',
+  fr: 'fra', de: 'deu', it: 'ita', es: 'esp',
+}
+const pokeApiItemsPath = resolve(OUT, '_pokeapi_items.json')
+// itemDescMap: { [langId]: { [normalizedName]: desc } }  — 按名称匹配而非 ID
+const pokeApiItemDescMap: Record<string, Record<string, string>> = {}
+if (existsSync(pokeApiItemsPath)) {
+  try {
+    const rawArr = JSON.parse(readFileSync(pokeApiItemsPath, 'utf-8'))
+    for (const raw of rawArr) {
+      if (!raw?.names || !raw.flavor_text_entries) continue
+      // 按语言取最新版本的 flavor_text（数组最后一个同语言条目即为最新）
+      const descByLang: Record<string, string> = {}
+      for (const fte of raw.flavor_text_entries) {
+        const langName = fte.language?.name
+        if (langName) descByLang[langName] = fte.text?.replace(/\n/g, '') ?? ''
+      }
+      // 按语言取道具名称
+      const nameByLang: Record<string, string> = {}
+      for (const n of raw.names) {
+        const langName = n.language?.name
+        if (langName && n.name) nameByLang[langName] = n.name
+      }
+      // 用名称作为 key 建立映射
+      for (const [apiLang, projLang] of Object.entries(POKEAPI_LANG_MAP)) {
+        const name = nameByLang[apiLang]
+        const desc = descByLang[apiLang]
+        if (name && desc) {
+          if (!pokeApiItemDescMap[projLang]) pokeApiItemDescMap[projLang] = {}
+          pokeApiItemDescMap[projLang][name] = desc
+        }
+      }
+    }
+    console.log(`📦 已加载 PokeAPI 道具数据，共 ${rawArr.length} 个`)
+  } catch { /* ignore */ }
+}
+
 const wazaIdSet = new Set(wazaRaw.map((w: any) => w.id))
 const wazaMap: Record<string, any> = {}
 for (const w of wazaRaw) wazaMap[w.id] = w
@@ -579,11 +619,16 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     .sort((a: any, b: any) => a.order - b.order)
 
   // 道具
+  const langItemDescs = pokeApiItemDescMap[langId] || {}
   const itemNames: any[] = []
   for (let i = 1; i <= 3000; i++) {
     const key = `itemname:ITEMNAME_${String(i).padStart(3, '0')}`
     const name = t(key)
-    if (name && name !== key) itemNames.push({ id: i, name })
+    if (name && name !== key) {
+      const entry: any = { id: i, name }
+      if (langItemDescs[name]) entry.desc = langItemDescs[name]
+      itemNames.push(entry)
+    }
   }
 
   writeJson(resolve(langOut, 'pokemon.json'), pokemon)
@@ -707,5 +752,100 @@ const gameGroups = softAppearRaw
   .sort((a: any, b: any) => a.appearTargetSort - b.appearTargetSort)
   .map((sa: any) => ({ id: sa.id, softwareIds: sa.mdSoftwares }))
 writeJson(resolve(OUT, 'gameGroups.json'), gameGroups)
+
+// ── 从 PokeAPI 宝可梦缓存生成 learnsets.json ──
+const KEEP_VGS = new Set([
+  'red-blue', 'yellow',
+  'gold-silver', 'crystal',
+  'ruby-sapphire', 'emerald', 'firered-leafgreen',
+  'diamond-pearl', 'platinum', 'heartgold-soulsilver',
+  'black-white', 'black-2-white-2',
+  'x-y', 'omega-ruby-alpha-sapphire',
+  'sun-moon', 'ultra-sun-ultra-moon',
+  'lets-go-pikachu-lets-go-eevee',
+  'sword-shield',
+  'brilliant-diamond-shining-pearl',
+  'legends-arceus',
+  'scarlet-violet',
+  'legends-za',
+])
+
+type LevelUpEntry = { move: number; level: number }
+type LearnsetBucket = {
+  'level-up'?: LevelUpEntry[]
+  machine?: number[]
+  egg?: number[]
+  tutor?: number[]
+}
+
+function extractLearnsetFromPokemon(pokemonData: any): Record<string, LearnsetBucket> {
+  const byVg: Record<string, { 'level-up': LevelUpEntry[]; machine: number[]; egg: number[]; tutor: number[] }> = {}
+  for (const entry of pokemonData.moves ?? []) {
+    const moveId = entry.move?.url?.match(/\/(\d+)\/$/)?.[1]
+    if (!moveId) continue
+    const mid = parseInt(moveId, 10)
+    for (const vg of entry.version_group_details ?? []) {
+      const vgName: string = vg.version_group?.name
+      if (!vgName || !KEEP_VGS.has(vgName)) continue
+      if (!byVg[vgName]) byVg[vgName] = { 'level-up': [], machine: [], egg: [], tutor: [] }
+      const bucket = byVg[vgName]
+      const method: string = vg.move_learn_method?.name
+      if (method === 'level-up') {
+        if (!bucket['level-up'].find(e => e.move === mid)) {
+          bucket['level-up'].push({ move: mid, level: vg.level_learned_at })
+        }
+      } else if (method === 'machine') {
+        if (!bucket.machine.includes(mid)) bucket.machine.push(mid)
+      } else if (method === 'egg') {
+        if (!bucket.egg.includes(mid)) bucket.egg.push(mid)
+      } else if (method === 'tutor') {
+        if (!bucket.tutor.includes(mid)) bucket.tutor.push(mid)
+      }
+    }
+  }
+  // 排序 level-up，清理空数组/空版本组
+  for (const vg of Object.values(byVg)) {
+    vg['level-up'].sort((a, b) => a.level - b.level || a.move - b.move)
+    for (const key of Object.keys(vg) as (keyof typeof vg)[]) {
+      if (vg[key]!.length === 0) delete (vg as any)[key]
+    }
+  }
+  for (const k of Object.keys(byVg)) {
+    if (Object.keys(byVg[k]).length === 0) delete byVg[k]
+  }
+  return byVg
+}
+
+const pokeApiPokemonsPath = resolve(OUT, '_pokeapi_pokemons.json')
+if (existsSync(pokeApiPokemonsPath)) {
+  try {
+    const rawData = JSON.parse(readFileSync(pokeApiPokemonsPath, 'utf-8'))
+    const learnsets: Record<string, Record<string, Record<string, LearnsetBucket>>> = {}
+
+    for (const [dexNum, speciesEntry] of Object.entries<any>(rawData)) {
+      if (!speciesEntry?.varieties?.length) continue
+      const entry: Record<number, Record<string, LearnsetBucket>> = {}
+      for (let i = 0; i < speciesEntry.varieties.length; i++) {
+        const pokemonData = speciesEntry.varieties[i]
+        if (!pokemonData?.moves) continue
+        const ls = extractLearnsetFromPokemon(pokemonData)
+        if (Object.keys(ls).length > 0) entry[i] = ls
+      }
+      if (Object.keys(entry).length > 0) {
+        // 优化：如果所有形态完全一样，只保留 form 0
+        const base = JSON.stringify(entry[0])
+        const allSame = Object.keys(entry).every(k => JSON.stringify(entry[+k]) === base)
+        learnsets[dexNum] = allSame ? { '0': entry[0] } : (entry as any)
+      }
+    }
+
+    writeJson(resolve(OUT, 'learnsets.json'), learnsets)
+    console.log(`📋 已从 PokeAPI 宝可梦缓存生成 learnsets.json，共 ${Object.keys(learnsets).length} 个 species`)
+  } catch (e: any) {
+    console.warn(`⚠️ 生成 learnsets.json 失败: ${e.message}`)
+  }
+} else {
+  console.log('⚠ 未找到 _pokeapi_pokemons.json，跳过 learnsets.json 生成')
+}
 
 console.log('✅ All done!')

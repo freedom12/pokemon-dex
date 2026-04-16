@@ -7,7 +7,8 @@
   "scripts": {
     "data": "tsx scripts/build-data.ts",
     "fetch-moves": "tsx scripts/fetch-moves.ts",
-    "fetch-learnsets": "tsx scripts/fetch-learnsets.ts",
+    "fetch-items": "tsx scripts/fetch-items.ts",
+    "fetch-pokemons": "tsx scripts/fetch-pokemons.ts",
     "fetch-battle-usage-scvi": "tsx scripts/fetch-battle-usage-scvi.ts",
     "fetch-battle-usage-swsh": "tsx scripts/fetch-battle-usage-swsh.ts",
     "dev": "vite",
