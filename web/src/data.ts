@@ -162,7 +162,7 @@ export const getMoves = async (lang?: string): Promise<MoveEntry[]> => {
     Array<{ id: string; name: string; desc: string; category: string }>
   >('moves', language)
   const configs = await loadGlobal<
-    Array<{ id: string; type: string; categoryId: string; power?: number | null; accuracy?: number | null; pp?: number | null; priority?: number; effectChance?: number | null; target?: string }>
+    Array<{ id: string; type: string; categoryId: string; power?: number | null; accuracy?: number | null; pp?: number | null; priority?: number; effectChance?: number | null; target?: string; isAvailable?: boolean }>
   >('moves')
   const types = await getTypes(language)
   const typeNameMap = Object.fromEntries(types.map((t) => [t.id, t.name]))
@@ -176,6 +176,7 @@ export const getMoves = async (lang?: string): Promise<MoveEntry[]> => {
       ...m,
       typeName: typeNameMap[cfg?.type] || '',
       typeColor: typeColorMap[cfg?.type] || '',
+      isAvailable: cfg?.isAvailable ?? false,
     }
   })
 }

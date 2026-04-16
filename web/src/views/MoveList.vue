@@ -18,6 +18,7 @@
             <MoveCategoryIcon :cid="option.value" :size="20" />
           </template>
         </IconSelect>
+        <IconSelect v-model="availableFilter" :options="availableOptions" placeholder="全部招式" />
         <input
           class="search-bar" style="max-width:320px"
           v-model="search" placeholder="搜索招式名称..."
@@ -40,7 +41,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="m in paged" :key="m.id" class="move-row">
+          <tr v-for="m in paged" :key="m.id" class="move-row" :class="{ 'move-unavailable': !m.isAvailable }">
             <td style="color:var(--text2);font-size:13px">{{ parseInt(m.id.replace(/\D/g, ''), 10) }}</td>
             <td style="font-weight:600;white-space:nowrap"><a :href="`https://wiki.52poke.com/wiki/${m.name}`" target="_blank" rel="noopener" class="wiki-link">{{ m.name }}</a></td>
             <td>
@@ -85,6 +86,7 @@ const error = ref('')
 const search = ref('')
 const typeFilter = ref('')
 const categoryFilter = ref('')
+const availableFilter = ref('')
 const page = ref(1)
 const pageSize = 50
 
@@ -121,8 +123,18 @@ const categoryOptions = computed(() =>
   [...categories.value.entries()].map(([id, name]) => ({ value: id, label: name }))
 )
 
+const availableOptions = [
+  { value: 'yes', label: '可用招式' },
+  { value: 'no', label: '不可用招式' },
+]
+
 const filtered = computed(() => {
   let list = allMoves.value
+  if (availableFilter.value === 'yes') {
+    list = list.filter(m => m.isAvailable)
+  } else if (availableFilter.value === 'no') {
+    list = list.filter(m => !m.isAvailable)
+  }
   if (search.value) {
     const q = search.value.toLowerCase()
     list = list.filter(m => m.name.toLowerCase().includes(q))
@@ -142,7 +154,7 @@ const paged = computed(() => {
   return filtered.value.slice(start, start + pageSize)
 })
 
-watch([search, typeFilter, categoryFilter], () => { page.value = 1 })
+watch([search, typeFilter, categoryFilter, availableFilter], () => { page.value = 1 })
 
 function lookupMove(m: MoveEntry) {
   lookupByMove(
@@ -162,4 +174,5 @@ function lookupMove(m: MoveEntry) {
 }
 .move-row:hover .lookup-btn { opacity: 1; }
 .lookup-btn:hover { background: var(--bg2); }
+.move-unavailable { opacity: 0.45; }
 </style>

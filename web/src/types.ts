@@ -88,6 +88,7 @@ export interface MoveEntry {
   priority?: number
   effectChance?: number | null
   target?: string
+  isAvailable?: boolean
   [key: string]: unknown
 }
 

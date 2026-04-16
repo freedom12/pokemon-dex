@@ -320,30 +320,52 @@ const typeConfig = pokemonTypesRaw.map((ty) => ({
   resistTo: ty.mdTypes0_5 || [],
   immuneTo: ty.mdTypes0_0 || [],
 }));
-// 读取已有的 moves.json 以保留 PokeAPI 数据（power/accuracy/pp 等）
-const existingMovesPath = resolve(OUT, "moves.json");
-const existingMovesMap = {};
-if (existsSync(existingMovesPath)) {
+// 读取 PokeAPI 原始数据并建立映射
+// _pokeapi_moves.json 存储的是 PokeAPI 返回的完整原始 JSON
+// 这里做字段映射转换为内部格式
+const POKEAPI_TYPE_MAP = {
+  'normal': 'TY0000', 'fighting': 'TY0001', 'flying': 'TY0002',
+  'poison': 'TY0003', 'ground': 'TY0004', 'rock': 'TY0005',
+  'bug': 'TY0006', 'ghost': 'TY0007', 'steel': 'TY0008',
+  'fire': 'TY0009', 'water': 'TY0010', 'grass': 'TY0011',
+  'electric': 'TY0012', 'psychic': 'TY0013', 'ice': 'TY0014',
+  'dragon': 'TY0015', 'dark': 'TY0016', 'fairy': 'TY0017',
+};
+const POKEAPI_CATEGORY_MAP = {
+  'physical': 'WC0001', 'special': 'WC0002', 'status': 'WC0003',
+};
+function numToWz(n) {
+  return `WZ${String(n).padStart(4, '0')}`;
+}
+
+const pokeApiMovesPath = resolve(OUT, "_pokeapi_moves.json");
+const pokeApiMovesMap = {};
+if (existsSync(pokeApiMovesPath)) {
   try {
-    const arr = JSON.parse(readFileSync(existingMovesPath, "utf-8"));
-    for (const m of arr) existingMovesMap[m.id] = m;
+    const rawArr = JSON.parse(readFileSync(pokeApiMovesPath, "utf-8"));
+    for (const raw of rawArr) {
+      const wzId = numToWz(raw.id);
+      pokeApiMovesMap[wzId] = {
+        id: wzId,
+        pokeApiId: raw.id,
+        type: POKEAPI_TYPE_MAP[raw.type?.name] || '',
+        categoryId: POKEAPI_CATEGORY_MAP[raw.damage_class?.name] || '',
+        power: raw.power,
+        accuracy: raw.accuracy,
+        pp: raw.pp,
+        priority: raw.priority ?? 0,
+        effectChance: raw.effect_chance,
+        target: raw.target?.name || '',
+      };
+    }
   } catch { /* ignore */ }
 }
-const moveConfig = wazaRaw.map((w) => {
-  const prev = existingMovesMap[w.id];
-  const base = {
-    id: w.id,
-    type: w.mdPokemonType,
-    categoryId: w.mdWazaCategory || "",
-  };
-  // 保留 PokeAPI 字段
-  if (prev) {
-    for (const k of ['power', 'accuracy', 'pp', 'priority', 'effectChance', 'target']) {
-      if (prev[k] !== undefined) base[k] = prev[k];
-    }
-  }
-  return base;
-});
+
+// 构建 waza.json 的 ID 集合（用于 isAvailable 标记）
+const wazaIdSet = new Set(wazaRaw.map((w) => w.id));
+// 构建 waza.json 的 type/category 映射（优先使用 master data）
+const wazaMap = {};
+for (const w of wazaRaw) wazaMap[w.id] = w;
 
 const dmById = {};
 for (const dm of dictMgmtRaw) dmById[dm.id] = dm;
@@ -509,18 +531,55 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     name: t(r.ms),
   }));
 
-  // 招式
+  // 招式 - 从本地化文件中扫描所有 WAZANAME/WAZAINFO 条目
   const wcMap = {};
   for (const wc of wazaCatRaw) wcMap[wc.id] = t(wc.ms);
-  const moves = wazaRaw.map((w) => ({
-    id: w.id,
-    name: t(w.msname),
-    desc: t(w.mstext),
-    type: w.mdPokemonType,
-    typeName: typeMap[w.mdPokemonType]?.name || "",
-    categoryId: w.mdWazaCategory || "",
-    category: wcMap[w.mdWazaCategory] || "",
-  }));
+
+  // 收集所有本地化中存在的招式 ID
+  const moveNameMap = {};
+  const moveDescMap = {};
+  for (const key of Object.keys(texts)) {
+    const nameMatch = key.match(/^wazaname[^:]*:WAZANAME_(\d+)$/i);
+    if (nameMatch) {
+      const num = parseInt(nameMatch[1], 10);
+      if (num === 0) continue;
+      const wzId = `WZ${String(num).padStart(4, '0')}`;
+      moveNameMap[wzId] = texts[key];
+    }
+    const descMatch = key.match(/^wazainfo_all[^:]*:WAZAINFO_ALL_(\d+)$/i);
+    if (descMatch) {
+      const num = parseInt(descMatch[1], 10);
+      if (num === 0) continue;
+      const wzId = `WZ${String(num).padStart(4, '0')}`;
+      moveDescMap[wzId] = texts[key];
+    }
+  }
+
+  // 合并所有来源的招式 ID（本地化 + waza.json）
+  const allMoveIds = new Set([
+    ...Object.keys(moveNameMap),
+    ...wazaRaw.map((w) => w.id),
+  ]);
+
+  const moves = [...allMoveIds]
+    .sort((a, b) => parseInt(a.replace(/\D/g, ''), 10) - parseInt(b.replace(/\D/g, ''), 10))
+    .filter((wzId) => moveNameMap[wzId]) // 必须有本地化名称
+    .map((wzId) => {
+      const w = wazaMap[wzId];
+      const api = pokeApiMovesMap[wzId];
+      // 优先使用 waza.json 的 type/category，其次 PokeAPI
+      const typeId = w?.mdPokemonType || api?.type || '';
+      const catId = w?.mdWazaCategory || api?.categoryId || '';
+      return {
+        id: wzId,
+        name: moveNameMap[wzId] || '',
+        desc: moveDescMap[wzId] || '',
+        type: typeId,
+        typeName: typeMap[typeId]?.name || '',
+        categoryId: catId,
+        category: wcMap[catId] || '',
+      };
+    });
 
   // 名称/形态/分类/身高/体重/描述/颜色
   const nmMap = {};
@@ -781,6 +840,44 @@ for (const [langId, langName, folder, suffix] of LANGS) {
 const langMeta = LANGS.map(([id, name]) => ({ id, name }));
 writeFileSync(resolve(OUT, "langs.json"), JSON.stringify(langMeta));
 writeFileSync(resolve(OUT, "types.json"), JSON.stringify(typeConfig));
+
+// 全局 moves.json: 根据本地化中发现的所有招式 ID，从 _pokeapi_moves.json 选取条目，
+// 并根据 waza.json 添加 isAvailable 属性
+// 先收集所有语言中出现的招式 ID
+const allLangMoveIds = new Set();
+for (const [, , folder, suffix] of LANGS) {
+  const texts = parseTexts(folder, suffix);
+  for (const key of Object.keys(texts)) {
+    const nameMatch = key.match(/^wazaname[^:]*:WAZANAME_(\d+)$/i);
+    if (nameMatch) {
+      const num = parseInt(nameMatch[1], 10);
+      if (num > 0) allLangMoveIds.add(`WZ${String(num).padStart(4, '0')}`);
+    }
+  }
+}
+// 也包含 waza.json 中的 ID
+for (const w of wazaRaw) allLangMoveIds.add(w.id);
+
+const moveConfig = [...allLangMoveIds]
+  .sort((a, b) => parseInt(a.replace(/\D/g, ''), 10) - parseInt(b.replace(/\D/g, ''), 10))
+  .map((wzId) => {
+    const w = wazaMap[wzId];
+    const api = pokeApiMovesMap[wzId];
+    const base = {
+      id: wzId,
+      type: w?.mdPokemonType || api?.type || '',
+      categoryId: w?.mdWazaCategory || api?.categoryId || '',
+      isAvailable: wazaIdSet.has(wzId),
+    };
+    // 从 PokeAPI 数据中获取 power/accuracy/pp 等
+    if (api) {
+      for (const k of ['power', 'accuracy', 'pp', 'priority', 'effectChance', 'target']) {
+        if (api[k] !== undefined) base[k] = api[k];
+      }
+    }
+    return base;
+  });
+
 writeFileSync(resolve(OUT, "moves.json"), JSON.stringify(moveConfig));
 writeFileSync(resolve(OUT, "dexList.json"), JSON.stringify(dexListConfig));
 writeFileSync(resolve(OUT, "pokemon.json"), JSON.stringify(pokemonStatic));
