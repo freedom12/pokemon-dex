@@ -1,2 +1,3 @@
 node_modules/
 .vscode/
+web/public/data/_pokeapi_pokemons.json
