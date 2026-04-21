@@ -8,13 +8,9 @@
     <div class="ptcg-detail-page">
       <div class="ptcg-detail-body">
         <div class="ptcg-detail-left">
-          <a
-            v-if="card.image"
-            :href="bulbapediaUrl"
-            target="_blank" rel="noopener"
-          >
-            <PtcgHoloCard :src="card.image + '/high.webp'" :alt="card.name" />
-          </a>
+          <div v-if="card.images?.large" @click="showFullImage = true" style="cursor:zoom-in">
+            <PtcgHoloCard :src="card.images.large" :alt="card.name" />
+          </div>
         </div>
         <div class="ptcg-detail-right">
           <!-- 宝可梦图标（右上角） -->
@@ -28,29 +24,29 @@
           </router-link>
 
           <!-- 标题行 -->
-          <h2 class="ptcg-name" @dblclick="copyCardData" :title="'双击复制卡牌数据'">
+          <h2 class="ptcg-name" @dblclick="copyCardData" title="双击复制卡牌数据">
             {{ card.name }}
-            <span v-if="card.suffix" class="ptcg-suffix">{{ card.suffix }}</span>
-            <span v-if="card.level" class="ptcg-suffix">Lv.{{ card.level }}</span>
           </h2>
 
           <!-- 标签区 -->
           <div class="ptcg-meta">
-            <span class="ptcg-tag ptcg-cat">{{ card.category }}</span>
-            <span v-if="card.stage" class="ptcg-tag">{{ card.stage }}</span>
+            <span class="ptcg-tag ptcg-cat">{{ card.supertype }}</span>
+            <span v-for="st in (card.subtypes || [])" :key="st" class="ptcg-tag">{{ st }}</span>
             <span v-if="card.hp" class="ptcg-tag ptcg-hp">HP {{ card.hp }}</span>
             <EnergyIcon v-for="t in (card.types || [])" :key="t" :type="t" :size="22" />
-            <span v-if="card.trainerType" class="ptcg-tag">{{ card.trainerType }}</span>
-            <span v-if="card.energyType" class="ptcg-tag">{{ card.energyType }}</span>
           </div>
 
-          <!-- 描述 / 效果 -->
-          <p v-if="card.description" class="ptcg-desc"><EnergyText :text="card.description" /></p>
-          <p v-if="card.effect" class="ptcg-desc"><EnergyText :text="card.effect" /></p>
+          <!-- 描述 -->
+          <p v-if="card.flavorText" class="ptcg-desc"><EnergyText :text="card.flavorText" /></p>
+
+          <!-- 规则 -->
+          <div v-if="card.rules?.length" class="ptcg-rules">
+            <div v-for="(rule, i) in card.rules" :key="i" class="ptcg-rule"><EnergyText :text="rule" /></div>
+          </div>
 
           <!-- 进化信息 -->
-          <div v-if="card.evolveFrom" class="ptcg-info-row">
-            <span class="lbl">进化自</span> {{ card.evolveFrom }}
+          <div v-if="card.evolvesFrom" class="ptcg-info-row">
+            <span class="lbl">进化自</span> {{ card.evolvesFrom }}
           </div>
 
           <!-- 特性 -->
@@ -61,7 +57,7 @@
                 <span class="ptcg-ability-type">{{ ab.type }}</span>
                 <span class="ptcg-ability-name">{{ ab.name }}</span>
               </div>
-              <div class="ptcg-ability-effect"><EnergyText :text="ab.effect" /></div>
+              <div class="ptcg-ability-effect"><EnergyText :text="ab.text" /></div>
             </div>
           </div>
 
@@ -71,56 +67,44 @@
             <div v-for="atk in card.attacks" :key="atk.name" class="ptcg-attack">
               <div class="ptcg-attack-header">
                 <div style="display:flex;align-items:center;gap:6px">
-                  <EnergyIcon v-for="(c, i) in (atk.cost || [])" :key="i" :type="c" :size="18" />
+                  <EnergyIcon v-for="(c, i) in atk.cost" :key="i" :type="c" :size="18" />
                   <span class="ptcg-attack-name">{{ atk.name }}</span>
                 </div>
                 <span v-if="atk.damage" class="ptcg-attack-dmg">{{ atk.damage }}</span>
               </div>
-              <div v-if="atk.effect" class="ptcg-attack-effect"><EnergyText :text="atk.effect" /></div>
+              <div v-if="atk.text" class="ptcg-attack-effect"><EnergyText :text="atk.text" /></div>
             </div>
           </div>
 
-          <!-- 道具 -->
-          <div v-if="card.item" class="ptcg-section">
-            <h3>道具 — {{ card.item.name }}</h3>
-            <div class="ptcg-ability-effect"><EnergyText :text="card.item.effect" /></div>
-          </div>
-
           <!-- 战斗属性行（仅宝可梦卡） -->
-          <div v-if="card.category === 'Pokemon'" class="ptcg-battle-row">
+          <div v-if="card.supertype === 'Pokémon'" class="ptcg-battle-row">
             <div v-if="card.weaknesses?.length" class="ptcg-info-row">
               <span class="lbl">弱点</span>
               <span v-for="w in card.weaknesses" :key="w.type" class="ptcg-type-val">
                 <EnergyIcon :type="w.type" :size="18" /> {{ w.value }}
               </span>
             </div>
-            <div v-else class="ptcg-info-row">
-              <span class="lbl">弱点</span> 无
-            </div>
+            <div v-else class="ptcg-info-row"><span class="lbl">弱点</span> 无</div>
             <div v-if="card.resistances?.length" class="ptcg-info-row">
               <span class="lbl">抗性</span>
               <span v-for="r in card.resistances" :key="r.type" class="ptcg-type-val">
                 <EnergyIcon :type="r.type" :size="18" /> {{ r.value }}
               </span>
             </div>
-            <div v-else class="ptcg-info-row">
-              <span class="lbl">抗性</span> 无
-            </div>
-            <div v-if="card.retreat" class="ptcg-info-row">
+            <div v-else class="ptcg-info-row"><span class="lbl">抗性</span> 无</div>
+            <div v-if="card.retreatCost?.length" class="ptcg-info-row">
               <span class="lbl">撤退</span>
-              <EnergyIcon v-for="i in card.retreat" :key="i" type="Colorless" :size="18" />
+              <EnergyIcon v-for="(c, i) in card.retreatCost" :key="i" :type="c" :size="18" />
             </div>
-            <div v-else class="ptcg-info-row">
-              <span class="lbl">撤退</span> 无
-            </div>
+            <div v-else class="ptcg-info-row"><span class="lbl">撤退</span> 无</div>
           </div>
 
-          <!-- 合规 & 标记 -->
+          <!-- 底部信息 -->
           <div class="ptcg-footer-grid">
             <div v-if="card.set" class="ptcg-info-row">
               <span class="lbl">卡包</span>
-              <img v-if="card.set.symbol" :src="card.set.symbol + '.png'" class="ptcg-set-symbol" />
-              {{ card.set.name }} · #{{ card.localId }}
+              <img v-if="card.set.images?.symbol" :src="card.set.images.symbol" class="ptcg-set-symbol" />
+              {{ card.set.name }} · #{{ card.number }}
             </div>
             <div v-if="card.rarity" class="ptcg-info-row">
               <span class="lbl">稀有</span> <RarityIcon :rarity="card.rarity" :size="20" />
@@ -129,69 +113,65 @@
               <span class="lbl">标记</span>
               <span class="ptcg-reg-mark">{{ card.regulationMark }}</span>
             </div>
-            <div v-if="card.illustrator" class="ptcg-info-row">
-              <span class="lbl">画师</span> {{ card.illustrator }}
+            <div v-if="card.artist" class="ptcg-info-row">
+              <span class="lbl">画师</span> {{ card.artist }}
             </div>
-            <div v-if="card.legal" class="ptcg-info-row">
+            <div v-if="card.legalities" class="ptcg-info-row">
               <span class="lbl">赛制</span>
-              <span class="ptcg-legal" :class="{ yes: card.legal.standard }">Standard</span>
-              <span class="ptcg-legal" :class="{ yes: card.legal.expanded }">Expanded</span>
-            </div>
-            <div v-if="card.variants" class="ptcg-info-row">
-              <span class="lbl">版本</span>
-              <span v-if="card.variants.normal" class="ptcg-variant">Normal</span>
-              <span v-if="card.variants.holo" class="ptcg-variant holo">Holo</span>
-              <span v-if="card.variants.reverse" class="ptcg-variant reverse">Reverse</span>
-              <span v-if="card.variants.firstEdition" class="ptcg-variant first">1st Ed</span>
+              <span class="ptcg-legal" :class="{ yes: card.legalities.standard === 'Legal' }">Standard</span>
+              <span class="ptcg-legal" :class="{ yes: card.legalities.expanded === 'Legal' }">Expanded</span>
+              <span class="ptcg-legal" :class="{ yes: card.legalities.unlimited === 'Legal' }">Unlimited</span>
             </div>
           </div>
 
           <!-- 价格 -->
-          <div v-if="hasPrice" class="ptcg-section">
+          <div v-if="card.tcgplayer || card.cardmarket" class="ptcg-section">
             <h3>市场价格</h3>
             <div class="ptcg-price-grid">
-              <template v-if="card.pricing?.cardmarket">
-                <div class="ptcg-price-source">Cardmarket ({{ card.pricing.cardmarket.unit }})</div>
-                <div class="ptcg-price-row">
-                  <div v-if="card.pricing.cardmarket.avg != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">均价</span>
-                    <span class="ptcg-price-val">{{ card.pricing.cardmarket.avg?.toFixed(2) }}</span>
+              <template v-if="card.tcgplayer">
+                <div class="ptcg-price-source">
+                  <a :href="card.tcgplayer.url" target="_blank" rel="noopener">TCGPlayer (USD)</a>
+                </div>
+                <div v-for="(prices, variant) in card.tcgplayer.prices" :key="variant" class="ptcg-price-row">
+                  <div class="ptcg-price-item" style="min-width:80px">
+                    <span class="ptcg-price-label">{{ variant }}</span>
                   </div>
-                  <div v-if="card.pricing.cardmarket.low != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">最低</span>
-                    <span class="ptcg-price-val">{{ card.pricing.cardmarket.low?.toFixed(2) }}</span>
+                  <div v-if="prices.low != null" class="ptcg-price-item">
+                    <span class="ptcg-price-label">Low</span>
+                    <span class="ptcg-price-val">${{ prices.low?.toFixed(2) }}</span>
                   </div>
-                  <div v-if="card.pricing.cardmarket.trend != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">趋势</span>
-                    <span class="ptcg-price-val">{{ card.pricing.cardmarket.trend?.toFixed(2) }}</span>
+                  <div v-if="prices.market != null" class="ptcg-price-item">
+                    <span class="ptcg-price-label">Market</span>
+                    <span class="ptcg-price-val">${{ prices.market?.toFixed(2) }}</span>
                   </div>
-                  <div v-if="card.pricing.cardmarket['avg-holo'] != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">Holo 均价</span>
-                    <span class="ptcg-price-val">{{ card.pricing.cardmarket['avg-holo']?.toFixed(2) }}</span>
+                  <div v-if="prices.mid != null" class="ptcg-price-item">
+                    <span class="ptcg-price-label">Mid</span>
+                    <span class="ptcg-price-val">${{ prices.mid?.toFixed(2) }}</span>
+                  </div>
+                  <div v-if="prices.high != null" class="ptcg-price-item">
+                    <span class="ptcg-price-label">High</span>
+                    <span class="ptcg-price-val">${{ prices.high?.toFixed(2) }}</span>
                   </div>
                 </div>
               </template>
-              <template v-if="card.pricing?.tcgplayer">
-                <div class="ptcg-price-source">TCGPlayer ({{ card.pricing.tcgplayer.unit }})</div>
-                <template v-for="(vdata, vkey) in tcgplayerVariants" :key="vkey">
-                  <div class="ptcg-price-row">
-                    <div class="ptcg-price-item" style="min-width:60px">
-                      <span class="ptcg-price-label">{{ vkey }}</span>
-                    </div>
-                    <div v-if="vdata.lowPrice != null" class="ptcg-price-item">
-                      <span class="ptcg-price-label">Low</span>
-                      <span class="ptcg-price-val">{{ vdata.lowPrice?.toFixed(2) }}</span>
-                    </div>
-                    <div v-if="vdata.marketPrice != null" class="ptcg-price-item">
-                      <span class="ptcg-price-label">Market</span>
-                      <span class="ptcg-price-val">{{ vdata.marketPrice?.toFixed(2) }}</span>
-                    </div>
-                    <div v-if="vdata.midPrice != null" class="ptcg-price-item">
-                      <span class="ptcg-price-label">Mid</span>
-                      <span class="ptcg-price-val">{{ vdata.midPrice?.toFixed(2) }}</span>
-                    </div>
+              <template v-if="card.cardmarket">
+                <div class="ptcg-price-source">
+                  <a :href="card.cardmarket.url" target="_blank" rel="noopener">Cardmarket (EUR)</a>
+                </div>
+                <div class="ptcg-price-row">
+                  <div v-if="card.cardmarket.prices.averageSellPrice" class="ptcg-price-item">
+                    <span class="ptcg-price-label">均价</span>
+                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.averageSellPrice.toFixed(2) }}</span>
                   </div>
-                </template>
+                  <div v-if="card.cardmarket.prices.lowPrice" class="ptcg-price-item">
+                    <span class="ptcg-price-label">最低</span>
+                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.lowPrice.toFixed(2) }}</span>
+                  </div>
+                  <div v-if="card.cardmarket.prices.trendPrice" class="ptcg-price-item">
+                    <span class="ptcg-price-label">趋势</span>
+                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.trendPrice.toFixed(2) }}</span>
+                  </div>
+                </div>
               </template>
             </div>
           </div>
@@ -201,7 +181,14 @@
     </div>
 
     <!-- 相关卡牌 -->
-    <PtcgRelatedCards v-for="dex in (card.dexId || [])" :key="dex" :dexNum="dex" />
+    <PtcgRelatedCards v-for="dex in (card.nationalPokedexNumbers || [])" :key="dex" :dexNum="dex" />
+
+    <!-- 全屏图片预览 -->
+    <Teleport to="body">
+      <div v-if="showFullImage" class="ptcg-fullimg-overlay" @click="showFullImage = false">
+        <img :src="card.images.large" :alt="card.name" class="ptcg-fullimg" />
+      </div>
+    </Teleport>
   </template>
 </template>
 
@@ -215,46 +202,27 @@ import PtcgHoloCard from '../components/PtcgHoloCard.vue'
 import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
 import RarityIcon from '../components/RarityIcon.vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
+import { fetchCard, type PtcgCard } from '../ptcg/api'
 import { getPokemon } from '../data'
 import type { Pokemon } from '../types'
-import type { CardDetail } from '../ptcg/types'
 
 const props = defineProps<{ id: string }>()
 const route = useRoute()
 
 const loading = ref(true)
-const card = ref<CardDetail | null>(null)
+const card = ref<PtcgCard | null>(null)
 const allPokemon = ref<Pokemon[]>([])
+const showFullImage = ref(false)
 
+watch(showFullImage, (v) => {
+  document.body.style.overflow = v ? 'hidden' : ''
+})
 const cardId = computed(() => (route.params.id as string) || props.id)
 
-const bulbapediaUrl = computed(() => {
-  if (!card.value) return ''
-  const name = card.value.name.replace(/ /g, '_')
-  const set = (card.value.set?.name ?? '').replace(/ /g, '_')
-  const id = card.value.localId
-  return `https://bulbapedia.bulbagarden.net/wiki/${name}_(${set}_${id})`
-})
-
 const linkedPokemon = computed(() => {
-  const ids = card.value?.dexId
+  const ids = card.value?.nationalPokedexNumbers
   if (!ids?.length || !allPokemon.value.length) return []
   return ids.map(dex => allPokemon.value.find(p => p.dexNum === dex && p.formNo === 0)).filter(Boolean) as Pokemon[]
-})
-
-const hasPrice = computed(() => {
-  const p = card.value?.pricing
-  return p?.cardmarket || p?.tcgplayer
-})
-
-const tcgplayerVariants = computed(() => {
-  const t = card.value?.pricing?.tcgplayer
-  if (!t) return {}
-  const out: Record<string, { lowPrice?: number; midPrice?: number; highPrice?: number; marketPrice?: number }> = {}
-  for (const k of ['normal', 'holofoil', 'reverse'] as const) {
-    if (t[k]) out[k] = t[k]!
-  }
-  return out
 })
 
 function copyCardData() {
@@ -277,12 +245,13 @@ function copyCardData() {
 async function loadCard() {
   loading.value = true
   card.value = null
+  showFullImage.value = false
   try {
-    const [res] = await Promise.all([
-      fetch(`https://api.tcgdex.net/v2/en/cards/${cardId.value}`),
+    const [data] = await Promise.all([
+      fetchCard(cardId.value),
       allPokemon.value.length ? Promise.resolve() : getPokemon().then(list => { allPokemon.value = list }),
     ])
-    if (res.ok) card.value = await res.json()
+    card.value = data
   } finally { loading.value = false }
 }
 
@@ -294,26 +263,24 @@ loadCard()
 .ptcg-detail-page { padding: 16px 0; }
 .ptcg-detail-body { display: flex; gap: 24px; }
 .ptcg-detail-left { flex-shrink: 0; width: 320px; }
-.ptcg-detail-img { width: 100%; border-radius: 8px; }
 .ptcg-detail-right { flex: 1; min-width: 0; position: relative; }
 
 .ptcg-dex-link {
   position: absolute; top: 0; right: 0;
-  display: inline-block;
-  border-radius: 8px; padding: 2px;
+  display: inline-block; border-radius: 8px; padding: 2px;
   transition: transform .2s;
 }
 .ptcg-dex-link:hover { transform: scale(1.15); }
 
-.ptcg-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
-.ptcg-suffix { font-size: 14px; font-weight: 400; color: var(--text2); margin-left: 6px; }
-
+.ptcg-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; cursor: default; }
 .ptcg-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; align-items: center; }
 .ptcg-tag { padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background: var(--bg3); color: var(--text); }
 .ptcg-cat { background: var(--accent); color: #fff; }
 .ptcg-hp { background: #c0392b; color: #fff; }
 
 .ptcg-desc { font-size: 14px; color: var(--text2); margin: 6px 0 10px; line-height: 1.6; font-style: italic; }
+.ptcg-rules { margin: 6px 0 10px; }
+.ptcg-rule { font-size: 13px; color: var(--text2); line-height: 1.5; padding: 2px 0; }
 
 .ptcg-info-row { font-size: 14px; padding: 3px 0; display: flex; gap: 8px; align-items: center; }
 .lbl { color: var(--text2); min-width: 40px; flex-shrink: 0; }
@@ -342,13 +309,11 @@ loadCard()
 .ptcg-reg-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--bg3); font-weight: 700; font-size: 13px; }
 .ptcg-legal { font-size: 12px; padding: 1px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: var(--text2); }
 .ptcg-legal.yes { background: rgba(46,204,113,.15); color: #2ecc71; }
-.ptcg-variant { font-size: 12px; padding: 1px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: var(--text2); }
-.ptcg-variant.holo { background: rgba(241,196,15,.15); color: #f1c40f; }
-.ptcg-variant.reverse { background: rgba(52,152,219,.15); color: #3498db; }
-.ptcg-variant.first { background: rgba(231,76,60,.15); color: #e74c3c; }
 
 .ptcg-price-grid { font-size: 13px; }
 .ptcg-price-source { font-weight: 600; color: var(--text); margin: 6px 0 4px; }
+.ptcg-price-source a { color: var(--accent); text-decoration: none; }
+.ptcg-price-source a:hover { text-decoration: underline; }
 .ptcg-price-row { display: flex; flex-wrap: wrap; gap: 12px; padding: 3px 0; }
 .ptcg-price-item { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
 .ptcg-price-label { font-size: 11px; color: var(--text2); }
@@ -357,5 +322,16 @@ loadCard()
 @media (max-width: 640px) {
   .ptcg-detail-body { flex-direction: column; }
   .ptcg-detail-left { width: 100%; max-width: 320px; margin: 0 auto; }
+}
+
+.ptcg-fullimg-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,.85);
+  display: flex; align-items: center; justify-content: center;
+  cursor: zoom-out; padding: 24px;
+}
+.ptcg-fullimg {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 12px;
 }
 </style>

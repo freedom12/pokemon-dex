@@ -21,7 +21,7 @@
   </nav>
   <div class="container">
     <router-view v-slot="{ Component }" :key="lang">
-      <keep-alive include="PokemonList">
+      <keep-alive include="PokemonList,PtcgView">
         <component :is="Component" />
       </keep-alive>
     </router-view>

@@ -11,7 +11,7 @@
         class="ptcg-related-item"
       >
         <img
-          v-if="card.image" :src="card.image + '/low.webp'"
+          v-if="card.images?.small" :src="card.images.small"
           :alt="card.name" class="ptcg-related-img" loading="lazy"
         />
         <div v-else class="ptcg-related-img ptcg-related-placeholder">{{ card.name }}</div>
@@ -26,32 +26,27 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-
-interface TcgCard { id: string; localId: string; name: string; image?: string }
+import { fetchCardsByPokedex, type PtcgCardBrief } from '../ptcg/api'
 
 const props = defineProps<{ dexNum: number }>()
 
-const cards = ref<TcgCard[]>([])
+const cards = ref<PtcgCardBrief[]>([])
 const open = ref(true)
 const showAll = ref(false)
 const LIMIT = 12
 
 const visible = computed(() => showAll.value ? cards.value : cards.value.slice(0, LIMIT))
 
-async function fetchCards() {
+async function loadCards() {
   cards.value = []
   showAll.value = false
   if (!props.dexNum) return
   try {
-    const res = await fetch(`https://api.tcgdex.net/v2/en/dex-ids/${props.dexNum}`)
-    if (res.ok) {
-      const data = await res.json()
-      cards.value = (data.cards ?? []).filter((c: TcgCard) => c.image)
-    }
+    cards.value = await fetchCardsByPokedex(props.dexNum)
   } catch { /* ignore */ }
 }
 
-watch(() => props.dexNum, fetchCards, { immediate: true })
+watch(() => props.dexNum, loadCards, { immediate: true })
 </script>
 
 <style scoped>

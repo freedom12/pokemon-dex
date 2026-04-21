@@ -1,25 +1,25 @@
 <template>
-  <!-- Main sets -->
-  <div v-if="mainItems.length" class="ptcg-list-grid">
-    <div v-for="s in mainItems" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
-      <img v-if="s.logo" :src="s.logo + '.png'" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
+  <!-- 主要 sets -->
+  <div v-if="mainSets.length" class="ptcg-list-grid">
+    <div v-for="s in mainSets" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
+      <img v-if="s.images?.logo" :src="s.images.logo" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
       <div v-else class="ptcg-list-logo ptcg-logo-placeholder">{{ s.name }}</div>
       <div class="ptcg-list-name">{{ s.name }}</div>
-      <div class="ptcg-list-count">{{ s.cardCount?.total ?? '?' }} 张</div>
-      <img v-if="s.symbol" :src="s.symbol + '.png'" class="ptcg-set-symbol" />
+      <div class="ptcg-list-count">{{ s.total }} 张</div>
+      <img v-if="s.images?.symbol" :src="s.images.symbol" class="ptcg-set-symbol" />
     </div>
   </div>
 
-  <!-- Promo + Special -->
-  <template v-if="extraItems.length">
+  <!-- 附属 sets (Promo / Trainer / Energy) -->
+  <template v-if="subSets.length">
     <hr class="ptcg-divider" />
     <div class="ptcg-list-grid">
-      <div v-for="s in extraItems" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
-        <img v-if="s.logo" :src="s.logo + '.png'" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
+      <div v-for="s in subSets" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
+        <img v-if="s.images?.logo" :src="s.images.logo" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
         <div v-else class="ptcg-list-logo ptcg-logo-placeholder">{{ s.name }}</div>
         <div class="ptcg-list-name">{{ s.name }}</div>
-        <div class="ptcg-list-count">{{ s.cardCount?.total ?? '?' }} 张</div>
-        <img v-if="s.symbol" :src="s.symbol + '.png'" class="ptcg-set-symbol" />
+        <div class="ptcg-list-count">{{ s.total }} 张</div>
+        <img v-if="s.images?.symbol" :src="s.images.symbol" class="ptcg-set-symbol" />
       </div>
     </div>
   </template>
@@ -27,34 +27,25 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { SetBrief } from '../ptcg/types'
-import { SET_GROUPS } from '../constants/ptcg'
+import type { PtcgSet } from '../ptcg/api'
+import { MAIN_SERIES_SUB_PATTERNS } from '../constants/ptcg'
 
-const props = defineProps<{ sets: SetBrief[] }>()
-defineEmits<{ select: [set: SetBrief] }>()
+const props = defineProps<{ sets: PtcgSet[] }>()
+defineEmits<{ select: [set: PtcgSet] }>()
 
-const categorized = new Set(SET_GROUPS.flatMap(g => g.ids))
-const promoIds = SET_GROUPS.find(g => g.key === 'promo')?.ids ?? []
-const specialIds = SET_GROUPS.find(g => g.key === 'special')?.ids ?? []
+function isSub(s: PtcgSet) {
+  return MAIN_SERIES_SUB_PATTERNS.some(p => p.match.test(s.name))
+}
 
-const mainItems = computed(() =>
-  props.sets.filter(s => !categorized.has(s.id)).reverse()
-)
-
-const extraItems = computed(() => {
-  const map = new Map(props.sets.map(s => [s.id, s]))
-  // promo 先，special 后，各自倒序
-  const promo = promoIds.map(id => map.get(id)).filter(Boolean).reverse() as SetBrief[]
-  const special = specialIds.map(id => map.get(id)).filter(Boolean).reverse() as SetBrief[]
-  return [...promo, ...special]
-})
+const mainSets = computed(() => props.sets.filter(s => !isSub(s)))
+const subSets = computed(() => props.sets.filter(s => isSub(s)))
 </script>
 
 <style scoped>
 .ptcg-divider {
   border: none;
   border-top: 1px solid var(--border);
-  margin: 24px 0;
+  margin: 20px 0;
 }
 .ptcg-list-grid {
   display: grid;
@@ -71,8 +62,7 @@ const extraItems = computed(() => {
 .ptcg-list-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 .ptcg-set-symbol {
   position: absolute; bottom: 8px; right: 8px;
-  width: 20px; height: 20px; object-fit: contain;
-  opacity: 0.7;
+  width: 20px; height: 20px; object-fit: contain; opacity: 0.7;
 }
 .ptcg-list-logo { width: 180px; height: 48px; object-fit: contain; }
 .ptcg-logo-placeholder {
