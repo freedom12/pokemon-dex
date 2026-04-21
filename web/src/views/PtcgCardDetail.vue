@@ -13,7 +13,7 @@
             :href="bulbapediaUrl"
             target="_blank" rel="noopener"
           >
-            <img :src="card.image + '/high.webp'" :alt="card.name" class="ptcg-detail-img" />
+            <PtcgHoloCard :src="card.image + '/high.webp'" :alt="card.name" />
           </a>
         </div>
         <div class="ptcg-detail-right">
@@ -28,7 +28,7 @@
           </router-link>
 
           <!-- 标题行 -->
-          <h2 class="ptcg-name">
+          <h2 class="ptcg-name" @dblclick="copyCardData" :title="'双击复制卡牌数据'">
             {{ card.name }}
             <span v-if="card.suffix" class="ptcg-suffix">{{ card.suffix }}</span>
             <span v-if="card.level" class="ptcg-suffix">Lv.{{ card.level }}</span>
@@ -201,7 +201,7 @@
     </div>
 
     <!-- 相关卡牌 -->
-    <PtcgRelatedCards v-if="card.dexId?.length" :dexNum="card.dexId[0]" />
+    <PtcgRelatedCards v-for="dex in (card.dexId || [])" :key="dex" :dexNum="dex" />
   </template>
 </template>
 
@@ -211,6 +211,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import EnergyIcon from '../components/EnergyIcon.vue'
 import EnergyText from '../components/EnergyText.vue'
+import PtcgHoloCard from '../components/PtcgHoloCard.vue'
 import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
 import RarityIcon from '../components/RarityIcon.vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -255,6 +256,23 @@ const tcgplayerVariants = computed(() => {
   }
   return out
 })
+
+function copyCardData() {
+  if (!card.value) return
+  const text = JSON.stringify(card.value, null, 2)
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text)
+  } else {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+}
 
 async function loadCard() {
   loading.value = true
