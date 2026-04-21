@@ -93,9 +93,23 @@ function goToSerie(s: SerieBrief) { router.push(`/ptcg/serie/${s.id}`) }
 function goToSet(s: SetBrief) { router.push(`/ptcg/set/${s.id}`) }
 
 function loadForRoute() {
-  if (setId.value) fetchCards(setId.value)
-  else if (serieId.value) fetchSets(serieId.value)
-  else fetchSeries()
+  // 清空非当前层级的数据，避免闪现
+  if (setId.value) {
+    series.value = []
+    sets.value = []
+    fetchCards(setId.value)
+  } else if (serieId.value) {
+    series.value = []
+    cards.value = []
+    fetchSets(serieId.value)
+  } else {
+    sets.value = []
+    cards.value = []
+    serieName.value = ''
+    serieIdResolved.value = ''
+    setName.value = ''
+    fetchSeries()
+  }
 }
 
 watch(() => route.fullPath, loadForRoute)

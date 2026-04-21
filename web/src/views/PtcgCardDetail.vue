@@ -2,6 +2,9 @@
   <div v-if="loading" class="loading">加载中...</div>
   <div v-else-if="!card" class="loading" style="color:var(--accent)">卡牌未找到</div>
   <template v-else>
+    <div style="padding-top:12px">
+      <a style="font-size:13px;cursor:pointer" @click="$router.back()">← 返回</a>
+    </div>
     <div class="ptcg-detail-page">
       <div class="ptcg-detail-body">
         <div class="ptcg-detail-left">
@@ -186,7 +189,8 @@
 
 <script setup lang="ts">
 defineOptions({ name: 'PtcgCardDetail' })
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import EnergyIcon from '../components/EnergyIcon.vue'
 import EnergyText from '../components/EnergyText.vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -195,11 +199,13 @@ import type { Pokemon } from '../types'
 import type { CardDetail } from '../ptcg/types'
 
 const props = defineProps<{ id: string }>()
+const route = useRoute()
 
 const loading = ref(true)
 const card = ref<CardDetail | null>(null)
 const allPokemon = ref<Pokemon[]>([])
 
+const cardId = computed(() => (route.params.id as string) || props.id)
 const linkedPokemon = computed(() => {
   const ids = card.value?.dexId
   if (!ids?.length || !allPokemon.value.length) return []
@@ -221,15 +227,20 @@ const tcgplayerVariants = computed(() => {
   return out
 })
 
-onMounted(async () => {
+async function loadCard() {
+  loading.value = true
+  card.value = null
   try {
     const [res] = await Promise.all([
-      fetch(`https://api.tcgdex.net/v2/en/cards/${props.id}`),
-      getPokemon().then(list => { allPokemon.value = list }),
+      fetch(`https://api.tcgdex.net/v2/en/cards/${cardId.value}`),
+      allPokemon.value.length ? Promise.resolve() : getPokemon().then(list => { allPokemon.value = list }),
     ])
     if (res.ok) card.value = await res.json()
   } finally { loading.value = false }
-})
+}
+
+watch(cardId, loadCard)
+loadCard()
 </script>
 
 <style scoped>
