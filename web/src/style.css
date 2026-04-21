@@ -1,12 +1,12 @@
 :root {
-  --bg: #1a1a2e;
-  --bg2: #16213e;
-  --bg3: #0f3460;
-  --text: #e0e0e0;
-  --text2: #a0a0b0;
-  --accent: #e94560;
-  --card: #1e2a45;
-  --border: #2a3a5c;
+  --bg: #1c2333;
+  --bg2: #212a3b;
+  --bg3: #2e3a50;
+  --text: #e8eaed;
+  --text2: #8e99a9;
+  --accent: #3d9be9;
+  --card: #252f42;
+  --border: #354158;
   --radius: 10px;
 }
 
@@ -169,7 +169,7 @@ a:hover { text-decoration: underline; }
   background: var(--bg2); color: var(--text2);
   font-weight: 600; position: sticky; top: 0; z-index: 1;
 }
-.data-table tr:hover td { background: rgba(233,69,96,.05); }
+.data-table tr:hover td { background: rgba(61,155,233,.06); }
 
 /* Type chart grid */
 .type-grid {
@@ -195,7 +195,7 @@ a:hover { text-decoration: underline; }
   transition: all .2s;
 }
 .filter-btn:hover, .filter-btn.active {
-  border-color: var(--accent); color: #fff; background: rgba(233,69,96,.15);
+  border-color: var(--accent); color: #fff; background: rgba(61,155,233,.15);
 }
 
 /* Page header */
@@ -289,6 +289,6 @@ a:hover { text-decoration: underline; }
   padding: 8px 16px; cursor: pointer; font-size: 14px;
   white-space: nowrap; transition: background .15s;
 }
-.icon-select-item:hover { background: rgba(233,69,96,.1); }
+.icon-select-item:hover { background: rgba(61,155,233,.1); }
 .icon-select-item.active { color: var(--accent); }
 .dex-select-icons { display: flex; gap: 2px; align-items: center; }

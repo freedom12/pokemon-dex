@@ -631,8 +631,8 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
 .type-cell { white-space: nowrap; vertical-align: middle; }
 .type-cell-inner { display: inline-flex; gap: 4px; align-items: center; }
 .usage-row { cursor: pointer; }
-.usage-row.selected td { background: rgba(233,69,96,.12); }
-.usage-row:hover td { background: rgba(233,69,96,.06); }
+.usage-row.selected td { background: rgba(61,155,233,.12); }
+.usage-row:hover td { background: rgba(61,155,233,.06); }
 
 /* ── 详情面板 ── */
 .detail-placeholder {
