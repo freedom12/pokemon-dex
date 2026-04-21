@@ -1,9 +1,5 @@
 <template>
-  <div class="detail-section" v-if="hasAnyMoves">
-    <h3 class="section-toggle" @click="open = !open">
-      可学习招式 <span class="toggle-arrow" :class="{ open }">▸</span>
-    </h3>
-    <div v-show="open">
+  <CollapseSection v-if="hasAnyMoves" title="可学习招式">
       <!-- 版本选择 + 学习方式 + 搜索 -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
         <div class="filter-bar" style="margin:0;justify-content:space-between">
@@ -70,15 +66,15 @@
           </tbody>
         </table>
       </div>
-    </div>
 
     <PokemonLookup :visible="lookupVisible" :title="lookupTitle" :pokemon="lookupResults" @close="closeLookup" />
-  </div>
+  </CollapseSection>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, type PropType } from 'vue'
 import PokemonLookup from './PokemonLookup.vue'
+import CollapseSection from './CollapseSection.vue'
 import MoveCategoryIcon from './MoveCategoryIcon.vue'
 import TypeIcon from './TypeIcon.vue'
 import IconSelect from './IconSelect.vue'
@@ -95,7 +91,6 @@ const props = defineProps({
   allPokemon: { type: Array as PropType<Pokemon[]>, default: () => [] },
 })
 
-const open = ref(true)
 const activeVg = ref('')
 const activeTab = ref('level-up')
 const search = ref('')

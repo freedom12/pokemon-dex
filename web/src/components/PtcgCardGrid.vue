@@ -1,6 +1,7 @@
 <template>
-  <div class="page-count" style="margin-bottom:12px">共 {{ cards.length }} 张卡牌</div>
-  <div class="ptcg-grid">
+  <template v-if="cards.length">
+    <div class="page-count" style="margin-bottom:12px">共 {{ cards.length }} 张卡牌</div>
+    <div class="ptcg-grid">
     <router-link v-for="card in paged" :key="card.id" :to="`/ptcg/card/${card.id}`" class="ptcg-card">
       <img
         v-if="card.images?.small" :src="card.images.small"
@@ -11,6 +12,7 @@
     </router-link>
   </div>
   <Pagination v-model="page" :totalPages="totalPages" />
+  </template>
 </template>
 
 <script setup lang="ts">

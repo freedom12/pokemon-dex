@@ -91,20 +91,18 @@
     </div>
 
     <!-- 属性相性 -->
-    <div class="detail-section" v-if="typeEffList">
-      <h3 class="section-toggle" @click="typeEffOpen = !typeEffOpen">属性相性 <span class="toggle-arrow" :class="{ open: typeEffOpen }">▸</span></h3>
-      <div v-show="typeEffOpen" class="type-eff-bar">
+    <CollapseSection v-if="typeEffList" title="属性相性">
+      <div class="type-eff-bar">
         <div v-for="e in typeEffList" :key="e.type.id" class="type-eff-item" :title="e.type.name + ' ' + e.mult + '×'">
           <TypeIcon :tid="e.type.id" :alt="e.type.name" :size="28" />
           <img :src="effIcon(e.mult)" :alt="e.mult + '×'" class="type-eff-mult-icon" />
         </div>
       </div>
-    </div>
+    </CollapseSection>
 
     <!-- 特性 -->
-    <div class="detail-section" v-if="pokemon.abilities.length">
-      <h3 class="section-toggle" @click="abilityOpen = !abilityOpen">特性 <span class="toggle-arrow" :class="{ open: abilityOpen }">▸</span></h3>
-      <div v-show="abilityOpen" style="display:flex;flex-direction:column;gap:8px">
+    <CollapseSection v-if="pokemon.abilities.length" title="特性">
+      <div style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(ab, i) in pokemon.abilities" :key="i" class="ability-row" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:14px"><a :href="`https://wiki.52poke.com/wiki/${ab.name}`" target="_blank" rel="noopener" class="wiki-link">{{ ab.name }}</a></div>
@@ -113,14 +111,13 @@
           <button class="ability-lookup-btn" title="查看拥有此特性的宝可梦" @click="lookupAbility(ab)">🔍</button>
         </div>
       </div>
-    </div>
+    </CollapseSection>
 
     <PokemonLookup :visible="abilityLookupVisible" :title="abilityLookupTitle" :pokemon="abilityLookupResults" @close="closeAbilityLookup" />
 
     <!-- 图鉴描述 -->
-    <div class="detail-section" v-if="pokemon.zukanDescs && pokemon.zukanDescs.length">
-      <h3 class="section-toggle" @click="zukanOpen = !zukanOpen">图鉴描述 <span class="toggle-arrow" :class="{ open: zukanOpen }">▸</span></h3>
-      <div v-show="zukanOpen" style="display:flex;flex-direction:column;gap:8px">
+    <CollapseSection v-if="pokemon.zukanDescs && pokemon.zukanDescs.length" title="图鉴描述">
+      <div style="display:flex;flex-direction:column;gap:8px">
         <div v-for="(zd, i) in pokemon.zukanDescs" :key="i" style="padding:10px 14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)">
           <div style="font-size:12px;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:4px">
             <GameIcon v-for="sid in zd.sids" :key="sid" :sid="sid" :size="18" />
@@ -129,12 +126,11 @@
           <div style="font-size:14px;color:var(--text2);white-space:pre-line">{{ zd.desc }}</div>
         </div>
       </div>
-    </div>
+    </CollapseSection>
 
     <!-- 进化链 -->
-    <div class="detail-section" v-if="evoTree.length > 0">
-      <h3 class="section-toggle" @click="evoOpen = !evoOpen">进化链 <span class="toggle-arrow" :class="{ open: evoOpen }">▸</span></h3>
-      <div v-show="evoOpen" class="evo-chain">
+    <CollapseSection v-if="evoTree.length > 0" title="进化链">
+      <div class="evo-chain">
         <template v-for="(node, i) in evoTree" :key="i">
           <span v-if="i > 0" class="evo-arrow">→</span>
           <!-- 分支显示 -->
@@ -155,13 +151,13 @@
           <PokemonCard v-else :pokemon="(node as EvoNode)" :highlight="isCurrent(node as EvoNode)" @click="goTo(node as EvoNode)" />
         </template>
       </div>
-    </div>
+    </CollapseSection>
 
     <!-- 可学习招式 -->
-    <LearnsetPanel :learnset="learnsetData ?? undefined" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
+    <LearnsetSection :learnset="learnsetData ?? undefined" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
 
     <!-- 相关卡牌 -->
-    <PtcgRelatedCards v-if="pokemon.dexNum" :dexNum="pokemon.dexNum" />
+    <PtcgRelatedCardsSection v-if="pokemon.dexNum" :dexNum="pokemon.dexNum" />
   </template>
 </template>
 
@@ -178,9 +174,10 @@ import TypeIcon from '../components/TypeIcon.vue'
 import ShapeIcon from '../components/ShapeIcon.vue'
 import StatIcon from '../components/StatIcon.vue'
 import ColorBadge from '../components/ColorBadge.vue'
-import LearnsetPanel from '../components/LearnsetPanel.vue'
+import LearnsetSection from '../components/LearnsetSection.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
-import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
+import PtcgRelatedCardsSection from '../components/PtcgRelatedCardsSection.vue'
+import CollapseSection from '../components/CollapseSection.vue'
 import { buildEvoTree } from '../utils/evo'
 import { usePokemonLookup } from '../composables/usePokemonLookup'
 import type { EvoNode, EvoBranchNode, EvoTreeItem } from '../utils/evo'
@@ -195,10 +192,6 @@ const evoTree = ref<ReturnType<typeof buildEvoTree>>([])
 const gameGroups = ref<GameGroup[]>([])
 const softwareMap = ref<Record<string, string>>({})
 const showFemale = ref(false)
-const zukanOpen = ref(true)
-const abilityOpen = ref(true)
-const typeEffOpen = ref(true)
-const evoOpen = ref(true)
 const learnsetData = ref<Record<string, VgData> | null>(null)
 const movesMap = ref<Record<string, MoveEntry>>({})
 const allLearnsets = ref<Learnsets>({})

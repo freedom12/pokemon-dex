@@ -36,17 +36,17 @@
             <EnergyIcon v-for="t in (card.types || [])" :key="t" :type="t" :size="22" />
           </div>
 
+          <!-- 进化信息 -->
+          <div v-if="card.evolvesFrom" class="ptcg-info-row">
+            <span class="lbl">进化自</span> {{ card.evolvesFrom }}
+          </div>
+
           <!-- 描述 -->
           <p v-if="card.flavorText" class="ptcg-desc"><EnergyText :text="card.flavorText" /></p>
 
           <!-- 规则 -->
           <div v-if="card.rules?.length" class="ptcg-rules">
             <div v-for="(rule, i) in card.rules" :key="i" class="ptcg-rule"><EnergyText :text="rule" /></div>
-          </div>
-
-          <!-- 进化信息 -->
-          <div v-if="card.evolvesFrom" class="ptcg-info-row">
-            <span class="lbl">进化自</span> {{ card.evolvesFrom }}
           </div>
 
           <!-- 特性 -->
@@ -129,11 +129,8 @@
     </div>
 
     <!-- 市场价格 -->
-    <div v-if="card.tcgplayer || card.cardmarket" class="detail-section">
-      <h3 class="section-toggle" @click="priceOpen = !priceOpen">
-        市场价格 <span class="toggle-arrow" :class="{ open: priceOpen }">▸</span>
-      </h3>
-      <div v-show="priceOpen" class="ptcg-price-grid">
+    <CollapseSection v-if="card.tcgplayer || card.cardmarket" title="市场价格">
+      <div class="ptcg-price-grid">
         <template v-if="card.tcgplayer">
           <div class="ptcg-price-source">
             <a :href="card.tcgplayer.url" target="_blank" rel="noopener">TCGPlayer (USD)</a>
@@ -180,10 +177,10 @@
           </div>
         </template>
       </div>
-    </div>
+    </CollapseSection>
 
     <!-- 相关卡牌 -->
-    <PtcgRelatedCards v-for="dex in (card.nationalPokedexNumbers || [])" :key="dex" :dexNum="dex" />
+    <PtcgRelatedCardsSection v-for="dex in (card.nationalPokedexNumbers || [])" :key="dex" :dexNum="dex" />
 
     <!-- 全屏图片预览 -->
     <Teleport to="body">
@@ -201,7 +198,8 @@ import { useRoute } from 'vue-router'
 import EnergyIcon from '../components/EnergyIcon.vue'
 import EnergyText from '../components/EnergyText.vue'
 import PtcgHoloCard from '../components/PtcgHoloCard.vue'
-import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
+import PtcgRelatedCardsSection from '../components/PtcgRelatedCardsSection.vue'
+import CollapseSection from '../components/CollapseSection.vue'
 import RarityIcon from '../components/RarityIcon.vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import { fetchCard, type PtcgCard } from '../ptcg/api'
@@ -215,7 +213,6 @@ const loading = ref(true)
 const card = ref<PtcgCard | null>(null)
 const allPokemon = ref<Pokemon[]>([])
 const showFullImage = ref(false)
-const priceOpen = ref(true)
 
 watch(showFullImage, (v) => {
   document.body.style.overflow = v ? 'hidden' : ''
