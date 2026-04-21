@@ -159,6 +159,9 @@
 
     <!-- 可学习招式 -->
     <LearnsetPanel :learnset="learnsetData ?? undefined" :movesMap="movesMap" :allLearnsets="allLearnsets" :allPokemon="allPokemon" />
+
+    <!-- 相关卡牌 -->
+    <PtcgRelatedCards v-if="pokemon.dexNum" :dexNum="pokemon.dexNum" />
   </template>
 </template>
 
@@ -177,6 +180,7 @@ import StatIcon from '../components/StatIcon.vue'
 import ColorBadge from '../components/ColorBadge.vue'
 import LearnsetPanel from '../components/LearnsetPanel.vue'
 import PokemonLookup from '../components/PokemonLookup.vue'
+import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
 import { buildEvoTree } from '../utils/evo'
 import { usePokemonLookup } from '../composables/usePokemonLookup'
 import type { EvoNode, EvoBranchNode, EvoTreeItem } from '../utils/evo'

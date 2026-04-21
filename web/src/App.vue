@@ -11,6 +11,7 @@
         <router-link to="/types">属性</router-link>
         <router-link to="/ribbons">奖章</router-link>
         <router-link to="/battle-usage">使用率</router-link>
+        <router-link to="/ptcg">卡牌</router-link>
         <!-- <router-link to="/about">关于</router-link> -->
       </div>
       <select class="lang-select" v-model="lang" v-if="langs.length">
