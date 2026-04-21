@@ -3,22 +3,14 @@
     <div>
       <div class="page-title">宝可梦卡牌 PTCG</div>
       <div class="ptcg-breadcrumb">
-        <router-link to="/ptcg" class="ptcg-crumb" :class="{ active: !serieId }">
-          {{ LANGS.find(l => l.id === lang)?.name ?? lang }}
-        </router-link>
-        <template v-if="serieId && serieName">
+        <router-link to="/ptcg" class="ptcg-crumb" :class="{ active: level === 'series' }">English</router-link>
+        <template v-if="level === 'sets'">
           <span class="ptcg-sep">›</span>
-          <router-link :to="`/ptcg/serie/${serieId}`" class="ptcg-crumb" :class="{ active: !setId }">
-            {{ serieName }}
-          </router-link>
+          <span class="ptcg-crumb active">{{ serieName }}</span>
         </template>
-        <template v-if="setId && serieIdResolved && serieName">
+        <template v-if="level === 'cards'">
           <span class="ptcg-sep">›</span>
-          <router-link :to="`/ptcg/serie/${serieIdResolved}`" class="ptcg-crumb">
-            {{ serieName }}
-          </router-link>
-        </template>
-        <template v-if="setId && setName">
+          <router-link v-if="serieIdResolved" :to="`/ptcg/serie/${serieIdResolved}`" class="ptcg-crumb">{{ serieName }}</router-link>
           <span class="ptcg-sep">›</span>
           <span class="ptcg-crumb active">{{ setName }}</span>
         </template>
@@ -27,29 +19,23 @@
   </div>
 
   <div v-if="loading" class="loading">加载中...</div>
-  <PtcgSerieList v-else-if="!serieId" :series="series" @select="goToSerie" />
-  <PtcgSetList v-else-if="!setId" :sets="sets" @select="goToSet" />
+  <PtcgSerieList v-else-if="level === 'series'" :series="series" @select="goToSerie" />
+  <PtcgSetList v-else-if="level === 'sets'" :sets="sets" @select="goToSet" />
   <PtcgCardGrid v-else :cards="cards" />
 </template>
 
 <script setup lang="ts">
 defineOptions({ name: 'PtcgView' })
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import PtcgSerieList from '../components/PtcgSerieList.vue'
 import PtcgSetList from '../components/PtcgSetList.vue'
 import PtcgCardGrid from '../components/PtcgCardGrid.vue'
 import type { SerieBrief, SetBrief, SerieDetail, CardBrief } from '../ptcg/types'
 
-const LANGS = [
-  { id: 'en', name: 'English' },
-]
-
-const props = defineProps<{ serieId?: string; setId?: string }>()
 const router = useRouter()
-
-const lang = 'en'
-const API = `https://api.tcgdex.net/v2/${lang}`
+const route = useRoute()
+const API = 'https://api.tcgdex.net/v2/en'
 
 const loading = ref(false)
 const series = ref<SerieBrief[]>([])
@@ -58,6 +44,14 @@ const cards = ref<CardBrief[]>([])
 const serieName = ref('')
 const serieIdResolved = ref('')
 const setName = ref('')
+
+const serieId = computed(() => route.params.serieId as string | undefined)
+const setId = computed(() => route.params.setId as string | undefined)
+const level = computed(() => {
+  if (setId.value) return 'cards'
+  if (serieId.value) return 'sets'
+  return 'series'
+})
 
 async function fetchSeries() {
   loading.value = true
@@ -95,25 +89,16 @@ async function fetchCards(id: string) {
   } finally { loading.value = false }
 }
 
-function goToSerie(s: SerieBrief) {
-  router.push(`/ptcg/serie/${s.id}`)
-}
-
-function goToSet(s: SetBrief) {
-  router.push(`/ptcg/set/${s.id}`)
-}
+function goToSerie(s: SerieBrief) { router.push(`/ptcg/serie/${s.id}`) }
+function goToSet(s: SetBrief) { router.push(`/ptcg/set/${s.id}`) }
 
 function loadForRoute() {
-  if (props.setId) {
-    fetchCards(props.setId)
-  } else if (props.serieId) {
-    fetchSets(props.serieId)
-  } else {
-    fetchSeries()
-  }
+  if (setId.value) fetchCards(setId.value)
+  else if (serieId.value) fetchSets(serieId.value)
+  else fetchSeries()
 }
 
-watch(() => [props.serieId, props.setId], loadForRoute)
+watch(() => route.fullPath, loadForRoute)
 loadForRoute()
 </script>
 
