@@ -101,12 +101,7 @@
             <div v-if="!detailData" class="loading" style="padding:16px">加载详情中...</div>
             <template v-else-if="temotiData">
               <!-- 详情 -->
-              <div class="collapsible-section">
-                <div class="collapsible-header" @click="sectionOpen.detail = !sectionOpen.detail">
-                  <span class="collapsible-arrow" :class="{ open: sectionOpen.detail }">▶</span>
-                  <span>📋 详情</span>
-                </div>
-                <div v-show="sectionOpen.detail" class="collapsible-body">
+              <CollapseSection title="📋 详情" bordered>
               <!-- 招式 -->
               <div class="stat-section" v-if="temotiData.waza?.length">
                 <div class="stat-section-title">招式</div>
@@ -193,16 +188,10 @@
                   </span>
                 </div>
               </div>
-                </div>
-              </div>
+              </CollapseSection>
 
               <!-- 击倒对手 -->
-              <div class="collapsible-section" v-if="winData">
-                <div class="collapsible-header" @click="sectionOpen.win = !sectionOpen.win">
-                  <span class="collapsible-arrow" :class="{ open: sectionOpen.win }">▶</span>
-                  <span>🗡️ 击倒对手时</span>
-                </div>
-                <div v-show="sectionOpen.win" class="collapsible-body">
+              <CollapseSection v-if="winData" title="🗡️ 击倒对手时" :defaultOpen="false" bordered>
                 <div class="stat-section" v-if="winData.pokemon?.length">
                   <div class="stat-section-title">打倒的宝可梦 TOP10</div>
                   <div v-for="p in winData.pokemon.slice(0, 10)" :key="`w-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
@@ -227,16 +216,10 @@
                     <span class="stat-pct">{{ w.val }}%</span>
                   </div>
                 </div>
-                </div>
-              </div>
+              </CollapseSection>
 
               <!-- 被对手击倒 -->
-              <div class="collapsible-section" v-if="loseData">
-                <div class="collapsible-header" @click="sectionOpen.lose = !sectionOpen.lose">
-                  <span class="collapsible-arrow" :class="{ open: sectionOpen.lose }">▶</span>
-                  <span>🛡️ 被对手击倒时</span>
-                </div>
-                <div v-show="sectionOpen.lose" class="collapsible-body">
+              <CollapseSection v-if="loseData" title="🛡️ 被对手击倒时" :defaultOpen="false" bordered>
                 <div class="stat-section" v-if="loseData.pokemon?.length">
                   <div class="stat-section-title">打倒自己的宝可梦 TOP10</div>
                   <div v-for="p in loseData.pokemon.slice(0, 10)" :key="`l-${p.id}-${p.form}`" class="teammate-row" @click="selectPokemon(p)">
@@ -261,8 +244,7 @@
                     <span class="stat-pct">{{ w.val }}%</span>
                   </div>
                 </div>
-                </div>
-              </div>
+              </CollapseSection>
             </template>
             <div v-else class="loading" style="padding:16px;color:var(--text2)">该宝可梦暂无详细数据</div>
           </div>
@@ -285,6 +267,7 @@ import ItemIcon from '../components/ItemIcon.vue'
 import GameIcon from '../components/GameIcon.vue'
 import IconSelect from '../components/IconSelect.vue'
 import StatIcon from '../components/StatIcon.vue'
+import CollapseSection from '../components/CollapseSection.vue'
 import {
   getPokemon, getTypes, getMoves, getNatures, getAbilities, getItems,
   getBattleSeasons, getBattleTournaments, getBattleUsagePokemon, getBattleUsagePDetail,
@@ -338,9 +321,6 @@ const detailData = ref<BattleDetailData | null>(null)
 
 // ─── 选中宝可梦 ────────────────────────────────────────────
 const selectedPokemon = ref<BattleUsagePokemonItem | null>(null)
-
-// ─── 折叠控制 ──────────────────────────────────────────────
-const sectionOpen = ref({ detail: true, win: false, lose: false })
 
 // ─── 赛季列表应用（onMounted 和 switchGame 共用）────────────
 function applySeasonLists(seasonList: BattleSeason[], internetList: BattleSeason[]) {
@@ -695,27 +675,4 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
   background: rgba(255,255,255,.06); color: var(--text1);
 }
 
-/* ── 折叠区 ── */
-.collapsible-section {
-  margin: 8px 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.collapsible-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px;
-  font-size: 14px; font-weight: 700;
-  background: rgba(255,255,255,.04);
-  cursor: pointer; user-select: none;
-  transition: background .15s;
-}
-.collapsible-header:hover { background: rgba(255,255,255,.08); }
-.collapsible-arrow {
-  display: inline-block;
-  font-size: 10px;
-  transition: transform .2s;
-}
-.collapsible-arrow.open { transform: rotate(90deg); }
-.collapsible-body { padding: 0 12px 8px; }
 </style>
