@@ -1,20 +1,41 @@
 <template>
-  <div class="ptcg-list-grid">
-    <div v-for="s in series" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
-      <img v-if="s.logo" :src="s.logo + '.png'" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
-      <div v-else class="ptcg-list-logo ptcg-logo-placeholder">{{ s.name }}</div>
-      <div class="ptcg-list-name">{{ s.name }}</div>
+  <div v-for="group in groups" :key="group.key" class="ptcg-serie-group">
+    <div class="ptcg-group-title">{{ group.label }}</div>
+    <div class="ptcg-list-grid">
+      <div v-for="s in group.items" :key="s.id" class="ptcg-list-card" @click="$emit('select', s)">
+        <img v-if="s.logo" :src="s.logo + '.png'" :alt="s.name" class="ptcg-list-logo" loading="lazy" />
+        <div v-else class="ptcg-list-logo ptcg-logo-placeholder">{{ s.name }}</div>
+        <div class="ptcg-list-name">{{ s.name }}</div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { SerieBrief } from '../ptcg/types'
-defineProps<{ series: SerieBrief[] }>()
+import { SERIE_GROUPS } from '../constants/ptcg'
+
+const props = defineProps<{ series: SerieBrief[] }>()
 defineEmits<{ select: [serie: SerieBrief] }>()
+
+const groups = computed(() => {
+  const map = new Map(props.series.map(s => [s.id, s]))
+  return SERIE_GROUPS.map(g => {
+    // 按配置顺序取出，然后倒序
+    const items = g.ids.map(id => map.get(id)).filter(Boolean).reverse() as SerieBrief[]
+    return { key: g.key, label: g.label, items }
+  }).filter(g => g.items.length > 0)
+})
 </script>
 
 <style scoped>
+.ptcg-serie-group { margin-bottom: 24px; }
+.ptcg-group-title {
+  font-size: 16px; font-weight: 600; color: var(--text);
+  margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
 .ptcg-list-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
