@@ -123,7 +123,7 @@
               {{ card.set.name }} · #{{ card.localId }}
             </div>
             <div v-if="card.rarity" class="ptcg-info-row">
-              <span class="lbl">稀有</span> {{ card.rarity }}
+              <span class="lbl">稀有</span> <RarityIcon :rarity="card.rarity" :size="20" />
             </div>
             <div v-if="card.regulationMark" class="ptcg-info-row">
               <span class="lbl">标记</span>
@@ -199,6 +199,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 相关卡牌 -->
+    <PtcgRelatedCards v-if="card.dexId?.length" :dexNum="card.dexId[0]" />
   </template>
 </template>
 
@@ -208,6 +211,8 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import EnergyIcon from '../components/EnergyIcon.vue'
 import EnergyText from '../components/EnergyText.vue'
+import PtcgRelatedCards from '../components/PtcgRelatedCards.vue'
+import RarityIcon from '../components/RarityIcon.vue'
 import PokemonIcon from '../components/PokemonIcon.vue'
 import { getPokemon } from '../data'
 import type { Pokemon } from '../types'
