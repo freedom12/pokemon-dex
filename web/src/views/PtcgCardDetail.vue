@@ -8,7 +8,13 @@
     <div class="ptcg-detail-page">
       <div class="ptcg-detail-body">
         <div class="ptcg-detail-left">
-          <img v-if="card.image" :src="card.image + '/high.webp'" :alt="card.name" class="ptcg-detail-img" />
+          <a
+            v-if="card.image"
+            :href="bulbapediaUrl"
+            target="_blank" rel="noopener"
+          >
+            <img :src="card.image + '/high.webp'" :alt="card.name" class="ptcg-detail-img" />
+          </a>
         </div>
         <div class="ptcg-detail-right">
           <!-- 宝可梦图标（右上角） -->
@@ -80,23 +86,32 @@
             <div class="ptcg-ability-effect"><EnergyText :text="card.item.effect" /></div>
           </div>
 
-          <!-- 战斗属性行 -->
-          <div class="ptcg-battle-row">
+          <!-- 战斗属性行（仅宝可梦卡） -->
+          <div v-if="card.category === 'Pokemon'" class="ptcg-battle-row">
             <div v-if="card.weaknesses?.length" class="ptcg-info-row">
               <span class="lbl">弱点</span>
               <span v-for="w in card.weaknesses" :key="w.type" class="ptcg-type-val">
                 <EnergyIcon :type="w.type" :size="18" /> {{ w.value }}
               </span>
             </div>
+            <div v-else class="ptcg-info-row">
+              <span class="lbl">弱点</span> 无
+            </div>
             <div v-if="card.resistances?.length" class="ptcg-info-row">
-              <span class="lbl">抵抗</span>
+              <span class="lbl">抗性</span>
               <span v-for="r in card.resistances" :key="r.type" class="ptcg-type-val">
                 <EnergyIcon :type="r.type" :size="18" /> {{ r.value }}
               </span>
             </div>
+            <div v-else class="ptcg-info-row">
+              <span class="lbl">抗性</span> 无
+            </div>
             <div v-if="card.retreat" class="ptcg-info-row">
               <span class="lbl">撤退</span>
               <EnergyIcon v-for="i in card.retreat" :key="i" type="Colorless" :size="18" />
+            </div>
+            <div v-else class="ptcg-info-row">
+              <span class="lbl">撤退</span> 无
             </div>
           </div>
 
@@ -206,6 +221,15 @@ const card = ref<CardDetail | null>(null)
 const allPokemon = ref<Pokemon[]>([])
 
 const cardId = computed(() => (route.params.id as string) || props.id)
+
+const bulbapediaUrl = computed(() => {
+  if (!card.value) return ''
+  const name = card.value.name.replace(/ /g, '_')
+  const set = (card.value.set?.name ?? '').replace(/ /g, '_')
+  const id = card.value.localId
+  return `https://bulbapedia.bulbagarden.net/wiki/${name}_(${set}_${id})`
+})
+
 const linkedPokemon = computed(() => {
   const ids = card.value?.dexId
   if (!ids?.length || !allPokemon.value.length) return []
