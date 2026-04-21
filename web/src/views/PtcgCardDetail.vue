@@ -124,59 +124,61 @@
             </div>
           </div>
 
-          <!-- 价格 -->
-          <div v-if="card.tcgplayer || card.cardmarket" class="ptcg-section">
-            <h3>市场价格</h3>
-            <div class="ptcg-price-grid">
-              <template v-if="card.tcgplayer">
-                <div class="ptcg-price-source">
-                  <a :href="card.tcgplayer.url" target="_blank" rel="noopener">TCGPlayer (USD)</a>
-                </div>
-                <div v-for="(prices, variant) in card.tcgplayer.prices" :key="variant" class="ptcg-price-row">
-                  <div class="ptcg-price-item" style="min-width:80px">
-                    <span class="ptcg-price-label">{{ variant }}</span>
-                  </div>
-                  <div v-if="prices.low != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">Low</span>
-                    <span class="ptcg-price-val">${{ prices.low?.toFixed(2) }}</span>
-                  </div>
-                  <div v-if="prices.market != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">Market</span>
-                    <span class="ptcg-price-val">${{ prices.market?.toFixed(2) }}</span>
-                  </div>
-                  <div v-if="prices.mid != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">Mid</span>
-                    <span class="ptcg-price-val">${{ prices.mid?.toFixed(2) }}</span>
-                  </div>
-                  <div v-if="prices.high != null" class="ptcg-price-item">
-                    <span class="ptcg-price-label">High</span>
-                    <span class="ptcg-price-val">${{ prices.high?.toFixed(2) }}</span>
-                  </div>
-                </div>
-              </template>
-              <template v-if="card.cardmarket">
-                <div class="ptcg-price-source">
-                  <a :href="card.cardmarket.url" target="_blank" rel="noopener">Cardmarket (EUR)</a>
-                </div>
-                <div class="ptcg-price-row">
-                  <div v-if="card.cardmarket.prices.averageSellPrice" class="ptcg-price-item">
-                    <span class="ptcg-price-label">均价</span>
-                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.averageSellPrice.toFixed(2) }}</span>
-                  </div>
-                  <div v-if="card.cardmarket.prices.lowPrice" class="ptcg-price-item">
-                    <span class="ptcg-price-label">最低</span>
-                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.lowPrice.toFixed(2) }}</span>
-                  </div>
-                  <div v-if="card.cardmarket.prices.trendPrice" class="ptcg-price-item">
-                    <span class="ptcg-price-label">趋势</span>
-                    <span class="ptcg-price-val">€{{ card.cardmarket.prices.trendPrice.toFixed(2) }}</span>
-                  </div>
-                </div>
-              </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 市场价格 -->
+    <div v-if="card.tcgplayer || card.cardmarket" class="detail-section">
+      <h3 class="section-toggle" @click="priceOpen = !priceOpen">
+        市场价格 <span class="toggle-arrow" :class="{ open: priceOpen }">▸</span>
+      </h3>
+      <div v-show="priceOpen" class="ptcg-price-grid">
+        <template v-if="card.tcgplayer">
+          <div class="ptcg-price-source">
+            <a :href="card.tcgplayer.url" target="_blank" rel="noopener">TCGPlayer (USD)</a>
+          </div>
+          <div v-for="(prices, variant) in card.tcgplayer.prices" :key="variant" class="ptcg-price-row">
+            <div class="ptcg-price-item" style="min-width:80px">
+              <span class="ptcg-price-label">{{ variant }}</span>
+            </div>
+            <div v-if="prices.low != null" class="ptcg-price-item">
+              <span class="ptcg-price-label">Low</span>
+              <span class="ptcg-price-val">${{ prices.low?.toFixed(2) }}</span>
+            </div>
+            <div v-if="prices.market != null" class="ptcg-price-item">
+              <span class="ptcg-price-label">Market</span>
+              <span class="ptcg-price-val">${{ prices.market?.toFixed(2) }}</span>
+            </div>
+            <div v-if="prices.mid != null" class="ptcg-price-item">
+              <span class="ptcg-price-label">Mid</span>
+              <span class="ptcg-price-val">${{ prices.mid?.toFixed(2) }}</span>
+            </div>
+            <div v-if="prices.high != null" class="ptcg-price-item">
+              <span class="ptcg-price-label">High</span>
+              <span class="ptcg-price-val">${{ prices.high?.toFixed(2) }}</span>
             </div>
           </div>
-
-        </div>
+        </template>
+        <template v-if="card.cardmarket">
+          <div class="ptcg-price-source">
+            <a :href="card.cardmarket.url" target="_blank" rel="noopener">Cardmarket (EUR)</a>
+          </div>
+          <div class="ptcg-price-row">
+            <div v-if="card.cardmarket.prices.averageSellPrice" class="ptcg-price-item">
+              <span class="ptcg-price-label">均价</span>
+              <span class="ptcg-price-val">€{{ card.cardmarket.prices.averageSellPrice.toFixed(2) }}</span>
+            </div>
+            <div v-if="card.cardmarket.prices.lowPrice" class="ptcg-price-item">
+              <span class="ptcg-price-label">最低</span>
+              <span class="ptcg-price-val">€{{ card.cardmarket.prices.lowPrice.toFixed(2) }}</span>
+            </div>
+            <div v-if="card.cardmarket.prices.trendPrice" class="ptcg-price-item">
+              <span class="ptcg-price-label">趋势</span>
+              <span class="ptcg-price-val">€{{ card.cardmarket.prices.trendPrice.toFixed(2) }}</span>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -213,6 +215,7 @@ const loading = ref(true)
 const card = ref<PtcgCard | null>(null)
 const allPokemon = ref<Pokemon[]>([])
 const showFullImage = ref(false)
+const priceOpen = ref(true)
 
 watch(showFullImage, (v) => {
   document.body.style.overflow = v ? 'hidden' : ''
