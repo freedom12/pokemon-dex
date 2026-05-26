@@ -14,9 +14,7 @@
         <router-link to="/ptcg">卡牌</router-link>
         <!-- <router-link to="/about">关于</router-link> -->
       </div>
-      <select class="lang-select" v-model="lang" v-if="langs.length">
-        <option v-for="l in langs" :key="l.id" :value="l.id">{{ l.name }}</option>
-      </select>
+      <IconSelect v-model="lang" :options="langOptions" placeholder="语言" hidePlaceholder class="nav-lang" />
     </div>
   </nav>
   <div class="container">
@@ -29,11 +27,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { currentLang, getLangs, type LangEntry } from './data'
+import IconSelect from './components/IconSelect.vue'
 
 const lang = currentLang
 const langs = ref<LangEntry[]>([])
+
+const langOptions = computed(() =>
+  langs.value.length
+    ? langs.value.map(l => ({ value: l.id, label: l.name }))
+    : []
+)
 
 onMounted(async () => {
   langs.value = await getLangs()

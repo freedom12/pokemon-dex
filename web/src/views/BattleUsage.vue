@@ -572,13 +572,44 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
 }
 
 /* ── 规则切换 ── */
-.rule-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.rule-btn {
-  padding: 10px 16px; background: transparent; border: none;
-  color: var(--text2); font-size: 15px; cursor: pointer; transition: all .2s;
+.rule-toggle {
+  display: inline-flex;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.3s var(--ease-out);
+  align-self: center;
 }
-.rule-btn.active { background: var(--bg3); color: #fff; }
-.rule-btn:disabled { opacity: .4; cursor: not-allowed; }
+.rule-toggle:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
+}
+.rule-btn {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 15px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-spring);
+  outline: none;
+}
+.rule-btn:hover:not(:disabled) {
+  color: var(--accent);
+}
+.rule-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.3);
+}
+.rule-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
 .internet-select { max-width: 320px; }
 
 /* ── 布局 ── */
@@ -611,8 +642,8 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
 .type-cell { white-space: nowrap; vertical-align: middle; }
 .type-cell-inner { display: inline-flex; gap: 4px; align-items: center; }
 .usage-row { cursor: pointer; }
-.usage-row.selected td { background: rgba(61,155,233,.12); }
-.usage-row:hover td { background: rgba(61,155,233,.06); }
+.usage-row.selected td { background: rgba(var(--accent-rgb), .12); }
+.usage-row:hover td { background: rgba(var(--accent-rgb), .06); }
 
 /* ── 详情面板 ── */
 .detail-placeholder {
@@ -650,14 +681,14 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
 .item-icon { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; image-rendering: pixelated; }
 .stat-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
 .stat-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
-.stat-bar-fill.item-bar { background: #4caf88; }
+.stat-bar-fill.item-bar { background: var(--accent-cool); }
 .stat-bar-fill.ability-bar { background: #5b8dd9; }
 .stat-bar-fill.nature-bar { background: #b06fd8; }
-.nature-plus { font-size: 11px; color: #4ade80; margin-left: 4px; }
-.nature-minus { font-size: 11px; color: #f87171; margin-left: 2px; }
-.stat-bar-fill.tera-bar { background: #e0a030; }
-.stat-bar-fill.win-bar { background: #4cba6a; }
-.stat-bar-fill.lose-bar { background: #e05050; }
+.nature-plus { font-size: 11px; color: var(--accent-cool); margin-left: 4px; }
+.nature-minus { font-size: 11px; color: var(--accent); margin-left: 2px; }
+.stat-bar-fill.tera-bar { background: var(--accent-warm); }
+.stat-bar-fill.win-bar { background: var(--accent-cool); }
+.stat-bar-fill.lose-bar { background: var(--accent); }
 .stat-pct { min-width: 46px; text-align: right; font-size: 12px; color: var(--text2); flex-shrink: 0; }
 
 /* ── 搭档 ── */
@@ -666,13 +697,13 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
   padding: 3px 0; font-size: 13px;
   cursor: pointer; border-radius: 5px; transition: background .15s;
 }
-.teammate-row:hover { background: rgba(255,255,255,.05); }
+.teammate-row:hover { background: rgba(0,0,0,.04); }
 .teammate-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .teammate-types { display: flex; align-items: center; gap: 3px; margin-left: auto; flex-shrink: 0; }
 .stat-section-group-title {
   font-size: 13px; font-weight: 700; margin: 16px 0 4px;
   padding: 4px 8px; border-radius: 5px;
-  background: rgba(255,255,255,.06); color: var(--text1);
+  background: var(--bg2); color: var(--text);
 }
 
 </style>

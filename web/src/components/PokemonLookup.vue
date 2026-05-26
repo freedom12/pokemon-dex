@@ -47,25 +47,25 @@ function go(p: Pokemon) {
   display: flex; align-items: center; justify-content: center;
 }
 .lookup-panel {
-  background: #1a1a2e;
-  border: 1px solid #2a3a5c;
-  border-radius: 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   width: 90vw; max-width: 800px; max-height: 80vh;
   display: flex; flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: var(--shadow-lg);
 }
 .lookup-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px; border-bottom: 1px solid #2a3a5c;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.lookup-title { font-weight: 600; font-size: 15px; color: #e0e0e0; }
+.lookup-title { font-weight: 600; font-size: 15px; color: var(--text); }
 .lookup-close {
   background: none; border: none; font-size: 18px;
-  cursor: pointer; color: #a0a0b0; padding: 4px 8px;
+  cursor: pointer; color: var(--text2); padding: 4px 8px;
   border-radius: 4px;
 }
-.lookup-close:hover { background: #16213e; }
+.lookup-close:hover { background: var(--bg3); }
 .lookup-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));

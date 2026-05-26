@@ -1,5 +1,5 @@
 <template>
-  <div class="card" :style="highlight ? { borderColor: 'var(--accent)' } : {}" @click="$emit('click', current)">
+  <div class="card" :class="{ highlight }" @click="$emit('click', current)">
     <div class="dex-num" style="position:absolute;top:8px;left:10px">No.{{ String(current.dexNum).padStart(4, '0') }}</div>
     <div v-if="list.length > 1" class="form-carousel">
       <button class="form-switch" @click.stop="prev">‹</button>
@@ -43,6 +43,10 @@ function next() { idx.value = (idx.value + 1) % list.value.length }
 </script>
 
 <style scoped>
+.card.highlight {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
 .form-carousel {
   display: flex;
   align-items: center;
@@ -61,7 +65,7 @@ function next() { idx.value = (idx.value + 1) % list.value.length }
   flex-shrink: 0;
 }
 .form-switch:hover {
-  background: var(--hover);
+  background: var(--bg3);
   color: var(--text);
 }
 </style>

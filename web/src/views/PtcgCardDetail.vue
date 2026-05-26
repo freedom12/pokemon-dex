@@ -295,7 +295,7 @@ loadCard()
 .ptcg-ability-name { font-weight: 600; font-size: 14px; }
 .ptcg-ability-effect { font-size: 13px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
 
-.ptcg-attack { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ptcg-attack { padding: 6px 0; border-bottom: 1px solid var(--border); }
 .ptcg-attack:last-child { border-bottom: none; }
 .ptcg-attack-header { display: flex; justify-content: space-between; align-items: center; }
 .ptcg-attack-name { font-weight: 600; font-size: 14px; }
@@ -307,7 +307,7 @@ loadCard()
 .ptcg-footer-grid { padding: 8px 0; margin-top: 4px; border-top: 1px solid var(--border); }
 .ptcg-set-symbol { height: 18px; width: 18px; object-fit: contain; }
 .ptcg-reg-mark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--bg3); font-weight: 700; font-size: 13px; }
-.ptcg-legal { font-size: 12px; padding: 1px 8px; border-radius: 8px; background: rgba(255,255,255,.06); color: var(--text2); }
+.ptcg-legal { font-size: 12px; padding: 1px 8px; border-radius: 8px; background: var(--bg2); color: var(--text2); }
 .ptcg-legal.yes { background: rgba(46,204,113,.15); color: #2ecc71; }
 
 .ptcg-price-grid { font-size: 13px; }

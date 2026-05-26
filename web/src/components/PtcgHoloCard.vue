@@ -78,7 +78,7 @@ function onLeave() {
 
 .holo-card__rotator {
   position: relative;
-  border-radius: 8px;
+  border-radius: 17px;
   overflow: hidden;
   transform-style: preserve-3d;
   transform: rotateY(var(--rx)) rotateX(var(--ry));
@@ -95,13 +95,13 @@ function onLeave() {
 .holo-card__img {
   width: 100%;
   display: block;
-  border-radius: 8px;
+  border-radius: 17px;
 }
 
 .holo-card__shine {
   position: absolute;
   inset: 0;
-  border-radius: 8px;
+  border-radius: 17px;
   pointer-events: none;
   mix-blend-mode: soft-light;
   transition: opacity 0.4s ease;
@@ -114,7 +114,7 @@ function onLeave() {
 .holo-card__glare {
   position: absolute;
   inset: 0;
-  border-radius: 8px;
+  border-radius: 17px;
   pointer-events: none;
   mix-blend-mode: overlay;
   transition: opacity 0.4s ease;

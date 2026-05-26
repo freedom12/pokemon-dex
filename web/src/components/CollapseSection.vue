@@ -25,17 +25,23 @@ const open = ref(props.defaultOpen)
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  transition: border-color 0.3s var(--ease-out);
+}
+.bordered:hover {
+  border-color: var(--border-hover);
 }
 .bordered > .section-toggle {
-  padding: 8px 12px;
+  padding: 10px 14px;
   margin-bottom: 0;
   border-bottom: none;
-  background: rgba(255,255,255,.04);
+  background: rgba(0,0,0,.015);
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: background 0.2s var(--ease-out);
 }
 .bordered > .section-toggle:hover {
-  background: rgba(255,255,255,.08);
+  background: rgba(0,0,0,.04);
 }
 .bordered-body {
-  padding: 0 12px 8px;
+  padding: 0 14px 10px;
 }
 </style>

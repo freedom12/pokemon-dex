@@ -79,7 +79,7 @@ function imgSrc(r: RibbonEntry) { return iconBase + r.id + (r.hasAlt && altState
   cursor: pointer;
 }
 .ribbon-switch:hover {
-  background: var(--hover);
+  background: var(--bg3);
   color: var(--text);
 }
 .ribbon-desc {
