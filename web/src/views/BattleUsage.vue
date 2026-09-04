@@ -697,7 +697,7 @@ const decIconSrc = STAT_ICON_BASE + 'statistic_dec.png'
   padding: 3px 0; font-size: 13px;
   cursor: pointer; border-radius: 5px; transition: background .15s;
 }
-.teammate-row:hover { background: rgba(0,0,0,.04); }
+.teammate-row:hover { background: rgba(255,255,255,.06); }
 .teammate-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .teammate-types { display: flex; align-items: center; gap: 3px; margin-left: auto; flex-shrink: 0; }
 .stat-section-group-title {

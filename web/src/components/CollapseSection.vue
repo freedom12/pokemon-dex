@@ -34,12 +34,12 @@ const open = ref(props.defaultOpen)
   padding: 10px 14px;
   margin-bottom: 0;
   border-bottom: none;
-  background: rgba(0,0,0,.015);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius) var(--radius) 0 0;
   transition: background 0.2s var(--ease-out);
 }
 .bordered > .section-toggle:hover {
-  background: rgba(0,0,0,.04);
+  background: rgba(255, 255, 255, 0.07);
 }
 .bordered-body {
   padding: 0 14px 10px;

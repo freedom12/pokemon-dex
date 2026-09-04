@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import { fetchWithRetry, writeJson, readJson, getDirname } from './lib/utils'
+import { ZUKAN_DESC_GAMES } from '../src/constants/zukanDescGames'
 
 const __dirname = getDirname(import.meta.url)
 const ROOT = resolve(__dirname, '..', '..')
@@ -632,7 +633,21 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
 
   writeJson(resolve(langOut, 'pokemon.json'), pokemon)
-  writeJson(resolve(langOut, 'pokemon-descs.json'), { _g: gIndex, ...pokemonExtras })
+  // 图鉴描述按宝可梦拆分，避免单文件过大拖慢首屏
+  // 游戏索引 _g 已硬编码在前端 src/constants/zukanDescGames.ts，此处仅校验一致性
+  const actualG = gIndex.map((a) => [...a].sort().join(','))
+  const expectedG = ZUKAN_DESC_GAMES.map((a) => [...a].sort().join(','))
+  if (JSON.stringify(actualG) !== JSON.stringify(expectedG)) {
+    console.warn(
+      `⚠️ ${langId}: 图鉴描述游戏索引顺序变化，请更新 src/constants/zukanDescGames.ts\n` +
+      `   实际: ${JSON.stringify(gIndex)}\n` +
+      `   常量: ${JSON.stringify(ZUKAN_DESC_GAMES)}`,
+    )
+  }
+  const descsOut = resolve(langOut, 'pokemon-descs')
+  for (const [id, ext] of Object.entries(pokemonExtras)) {
+    writeJson(resolve(descsOut, `${id}.json`), ext)
+  }
   writeJson(resolve(langOut, 'types.json'), typeNames)
   writeJson(resolve(langOut, 'moves.json'), moves)
   writeJson(resolve(langOut, 'natures.json'), natures)

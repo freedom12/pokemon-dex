@@ -164,7 +164,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDescs, getAbilities, getTypes, getStats, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import { getPokemon, getGameGroups, getSoftwares, getMoves, getLearnsets, getPokemonDesc, getAbilities, getTypes, getStats, type GameGroup, type Pokemon, type MoveEntry } from '../data'
+import { ZUKAN_DESC_GAMES } from '../constants/zukanDescGames'
 import type { DetailedPokemon, ZukanDesc, PokemonStats, TypeEntry } from '../types'
 import type { Learnsets, VgData } from '../composables/usePokemonLookup'
 import PokemonIcon from '../components/PokemonIcon.vue'
@@ -278,7 +279,7 @@ function statColor(val: number) {
 async function loadData() {
   try {
     error.value = ''
-    const [all, gg, sw, allMoves, learnsets, descsMap, abList, typeList, statEntries] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getPokemonDescs(), getAbilities(), getTypes(), getStats()])
+    const [all, gg, sw, allMoves, learnsets, abList, typeList, statEntries] = await Promise.all([getPokemon(), getGameGroups(), getSoftwares(), getMoves(), getLearnsets().catch(() => ({} as Learnsets)), getAbilities(), getTypes(), getStats()])
   allPokemon.value = all
   allTypes.value = typeList
   const sMap: Record<string, string> = {}
@@ -303,9 +304,9 @@ async function loadData() {
 
   const base = all.find(x => x.id === route.params.id)
   if (base) {
-    // 合并详情扩展数据（图鉴描述、大图、特性描述）
-    const ext = (descsMap[base.id] || {}) as Record<string, unknown>
-    const ga = ((descsMap as Record<string, unknown>)._g || []) as Array<string[]>
+    // 合并详情扩展数据（图鉴描述、大图、特性描述）— 按需加载当前宝可梦的描述
+    const ext = (await getPokemonDesc(base.id)) || ({} as Record<string, unknown>)
+    const ga = ZUKAN_DESC_GAMES
     pokemon.value = {
       ...base,
       image: base.image,

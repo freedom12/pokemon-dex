@@ -132,6 +132,11 @@ export interface PokemonDescMap {
   [key: string]: Record<string, unknown>
 }
 
+/** 单只宝可梦的图鉴描述（pokemon-descs/<id>.json） */
+export interface PokemonDescEntry {
+  z: [number, string][]
+}
+
 export interface BattleUsagePokemonItem {
   id: number
   form: number

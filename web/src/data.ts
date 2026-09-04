@@ -11,7 +11,7 @@ import type {
   Pokemon, SoftwareEntry, GameGroup, DexListEntry,
   TypeEntry, MoveEntry, NatureEntry, AbilityEntry,
   ItemEntry, LangEntry, BattleSeason,
-  PokemonDescMap, BattleUsagePokemonItem, BattleDetailData,
+  PokemonDescMap, PokemonDescEntry, BattleUsagePokemonItem, BattleDetailData,
 } from './types'
 import type { Learnsets } from './composables/usePokemonLookup'
 
@@ -141,7 +141,33 @@ export const getPokemon = async (lang?: string): Promise<Pokemon[]> => {
   cache[key] = data
   return data
 }
-export const getPokemonDescs = (lang?: string): Promise<PokemonDescMap> => load('pokemon-descs', lang ?? currentLang.value)
+export async function getPokemonDesc(id: string, lang?: string): Promise<PokemonDescEntry | null> {
+  const language = lang ?? currentLang.value
+  const key = `${language}/pokemon-descs/${id}`
+  if (Object.prototype.hasOwnProperty.call(cache, key)) return cache[key] as PokemonDescEntry
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${language}/pokemon-descs/${id}.json`)
+  if (!res.ok) {
+    // 没有图鉴描述的宝可梦不存在对应文件，视为空
+    if (res.status === 404) {
+      cache[key] = null
+      return null
+    }
+    throw new Error(`Failed to load ${key}: ${res.status}`)
+  }
+  // Vite 开发服务器的 SPA fallback 会为不存在的路径返回 index.html（200, text/html）
+  if (!(res.headers.get('content-type') || '').includes('json')) {
+    cache[key] = null
+    return null
+  }
+  try {
+    const data = (await res.json()) as PokemonDescEntry
+    cache[key] = data
+    return data
+  } catch {
+    cache[key] = null
+    return null
+  }
+}
 export const getTypes = async (lang?: string): Promise<TypeEntry[]> => {
   const names = await load<{ id: string; name: string }[]>(
     'types', lang ?? currentLang.value,
