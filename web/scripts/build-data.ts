@@ -196,6 +196,17 @@ const softRaw = loadJson('software.json')
 
 const personalMap: Record<string, any> = {}
 for (const p of personalRaw) personalMap[p.id] = p
+
+// 各旧作的 personal 表可反映形态是否在该游戏中出现（如超级进化形态）
+const personalTTGroupMap: Record<string, string[]> = {}
+for (const groupId of ['TT004', 'TT005', 'TT006', 'TT007', 'TT008', 'TT009']) {
+  const fileName = `personal${groupId}.json`
+  if (!existsSync(resolve(MD, fileName))) continue
+  for (const p of loadJson(fileName)) {
+    ;(personalTTGroupMap[p.id] ??= []).push(groupId)
+  }
+}
+
 const evoMap: Record<string, any> = {}
 for (const e of evoRaw) evoMap[e.id] = e
 
@@ -386,9 +397,11 @@ const pokemonStatic = dictRaw
     if (d.isMega === 1) entry.mg = 1
     if (d.isDMax === 1) entry.dm = 1
     if (d.isInNumberSort === 1) entry.ns = 1
+    const personalGroups = d.isDMax ? [] : (personalTTGroupMap[psId] ?? [])
     const appearGames = [...new Set([
       ...(d.appearSoftwareAper ?? []),
       ...(extraAppearByPokemon[d.id] ?? []),
+      ...personalGroups,
     ])]
     if (appearGames.length) entry.ag = appearGames
     // 图鉴大图
@@ -601,7 +614,13 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     const dexNum = d.dictionaryId
     if (dexNum <= 0) continue
     if (formChangeRestrictedDexNums.has(dexNum) && !formChangeAllowedIds.has(d.id)) continue
-    const zukanDescs = getZukanDescs(dexNum, d.formNo || 0)
+    // 图鉴描述
+    // 形态编号以 mdHeightId / mdWeightId 末尾三位为准（GMax 为 999，个别形态为 998）
+    const zukanFormSuffix = String(d.mdHeightId || d.mdWeightId || '').slice(-3)
+    const zukanFormNo = /^\d+$/.test(zukanFormSuffix)
+      ? parseInt(zukanFormSuffix, 10)
+      : (d.formNo || 0)
+    const zukanDescs = getZukanDescs(dexNum, zukanFormNo)
     const ext: any = {}
     if (zukanDescs.length > 0) ext.z = zukanDescs
     if (Object.keys(ext).length) pokemonExtras[d.id] = ext
