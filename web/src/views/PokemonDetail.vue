@@ -123,7 +123,8 @@
             <GameIcon v-for="sid in zd.sids" :key="sid" :sid="sid" :size="18" />
             <span>{{ zd.game }}</span>
           </div>
-          <div style="font-size:14px;color:var(--text2);white-space:pre-line">{{ zd.desc }}</div>
+          <div v-if="zd.desc" style="font-size:14px;color:var(--text2);white-space:pre-line">{{ zd.desc }}</div>
+          <div v-else style="font-size:14px;color:var(--text2);font-style:italic">当前语言不支持</div>
         </div>
       </div>
     </CollapseSection>
@@ -307,18 +308,36 @@ async function loadData() {
     // 合并详情扩展数据（图鉴描述、大图、特性描述）— 按需加载当前宝可梦的描述
     const ext = (await getPokemonDesc(base.id)) || ({} as Record<string, unknown>)
     const ga = ZUKAN_DESC_GAMES
+    const rawZukan = (ext.z as Array<[number, string]> || [])
+    const describedIdx = new Set(rawZukan.map(zd => zd[0]))
+    const zukanDescs: ZukanDesc[] = rawZukan.map((zd) => {
+      const sids: string[] = ga[zd[0]] || []
+      return {
+        game: sids.map(sid => softwareMap.value[sid]).filter(Boolean).join(' / '),
+        sids,
+        desc: zd[1],
+      }
+    })
+    // 当前语言缺少某个可用游戏的图鉴描述时，仍显示该游戏条目并提示不支持
+    const appear = new Set(base.appearGames || [])
+    for (const gg of gameGroups.value) {
+      if (!appear.has(gg.id)) continue
+      ga.forEach((sids, idx) => {
+        if (describedIdx.has(idx)) return
+        if (!sids.some(sid => gg.softwareIds.includes(sid))) return
+        describedIdx.add(idx)
+        zukanDescs.push({
+          game: sids.map(sid => softwareMap.value[sid]).filter(Boolean).join(' / '),
+          sids,
+          desc: '',
+        })
+      })
+    }
     pokemon.value = {
       ...base,
       image: base.image,
       imageFemale: base.imageFemale,
-      zukanDescs: (ext.z as Array<[number, string]> || []).map((zd): ZukanDesc => {
-        const sids: string[] = ga[zd[0]] || []
-        return {
-          game: sids.map(sid => softwareMap.value[sid]).filter(Boolean).join(' / '),
-          sids,
-          desc: zd[1],
-        }
-      }),
+      zukanDescs,
       abilities: base.abilities.map(name => ({ name, desc: abilityDescMap[name] || '' })),
     } as unknown as DetailedPokemon
   } else {

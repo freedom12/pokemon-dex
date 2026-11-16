@@ -325,6 +325,20 @@ const dexListConfig = dictMgmtRaw
   })
   .filter((d: any) => d.pokemonIds.length > 0)
 
+// 旧作的可用性未记录在 dictionary.appearSoftwareAper 中，
+// 使用对应图鉴的宝可梦列表补充（如火红/叶绿）
+const legacyDexAppearGroups: Array<{ dexId: string; groupId: string }> = [
+  { dexId: 'DM009000', groupId: 'TT011' },
+]
+const LEGACY_GAME_GROUP_IDS = new Set(legacyDexAppearGroups.map((x) => x.groupId))
+const extraAppearByPokemon: Record<string, string[]> = {}
+for (const { dexId, groupId } of legacyDexAppearGroups) {
+  const dex = dexListConfig.find((d) => d.id === dexId)
+  for (const pid of dex?.pokemonIds ?? []) {
+    ;(extraAppearByPokemon[pid] ??= []).push(groupId)
+  }
+}
+
 const colorHexMap = Object.fromEntries(colorRaw.map((c: any) => [c.id, c.color]))
 
 const pokemonStatic = dictRaw
@@ -372,7 +386,11 @@ const pokemonStatic = dictRaw
     if (d.isMega === 1) entry.mg = 1
     if (d.isDMax === 1) entry.dm = 1
     if (d.isInNumberSort === 1) entry.ns = 1
-    if (d.appearSoftwareAper?.length) entry.ag = d.appearSoftwareAper
+    const appearGames = [...new Set([
+      ...(d.appearSoftwareAper ?? []),
+      ...(extraAppearByPokemon[d.id] ?? []),
+    ])]
+    if (appearGames.length) entry.ag = appearGames
     // 图鉴大图
     const zukanKey = `${dexNum}_${d.formNo || 0}_0_${d.isDMax || 0}`
     let image = zukanImageMap[zukanKey] || ''
@@ -768,8 +786,12 @@ writeJson(resolve(OUT, 'softwares.json'), softwareConfig)
 
 // 游戏组
 const gameGroups = softAppearRaw
-  .filter((sa: any) => sa.appearTarget === 1)
-  .sort((a: any, b: any) => a.appearTargetSort - b.appearTargetSort)
+  .filter((sa: any) => sa.appearTarget === 1 || LEGACY_GAME_GROUP_IDS.has(sa.id))
+  .sort((a: any, b: any) => {
+    const aLegacy = LEGACY_GAME_GROUP_IDS.has(a.id) ? 1 : 0
+    const bLegacy = LEGACY_GAME_GROUP_IDS.has(b.id) ? 1 : 0
+    return aLegacy - bLegacy || a.appearTargetSort - b.appearTargetSort
+  })
   .map((sa: any) => ({ id: sa.id, softwareIds: sa.mdSoftwares }))
 writeJson(resolve(OUT, 'gameGroups.json'), gameGroups)
 
