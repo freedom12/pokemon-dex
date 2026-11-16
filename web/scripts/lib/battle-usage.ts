@@ -81,7 +81,11 @@ async function fetchCompetitionData(
   force: boolean,
   labelFn: (e: SeasonEntry) => string,
 ) {
-  for (const entry of entries) {
+  let fetched = 0
+  let skipped = 0
+  let failed = 0
+  for (const [index, entry] of entries.entries()) {
+    const progress = `[${index + 1}/${entries.length}]`
     const { cId, rst, ts2 } = entry
     const label = labelFn(entry)
     const dir = resolve(outRoot, game, cId)
@@ -89,11 +93,12 @@ async function fetchCompetitionData(
     const pdetailFile = resolve(dir, 'pdetail.json')
 
     if (rst === 2 && !force && existsSync(pokemonFile) && existsSync(pdetailFile)) {
-      console.log(`  ⏭  ${label} (${cId.substring(0, 8)}) 已缓存，跳过`)
+      skipped++
+      console.log(`  ⏭  ${progress} ${label} (${cId.substring(0, 8)}) 已缓存，跳过`)
       continue
     }
 
-    console.log(`\n🔄 ${label} cId=${cId.substring(0, 8)}... rst=${rst}`)
+    console.log(`\n${progress} 🔄 ${label} cId=${cId.substring(0, 8)}... rst=${rst}`)
     mkdirSync(dir, { recursive: true })
 
     // 使用率排名列表
@@ -101,6 +106,7 @@ async function fetchCompetitionData(
     const pokemonUrl = `${RESOURCE_BASE}/${prefix}/${rst}/${ts2}/pokemon`
     const pokemonList = await fetchWithRetry<any[]>(pokemonUrl, { headers: RESOURCE_HEADERS })
     if (!pokemonList) {
+      failed++
       console.log(`  ⚠️  pokemon 列表获取失败（${pokemonUrl}）`)
       continue
     }
@@ -125,9 +131,11 @@ async function fetchCompetitionData(
     }
     writeJson(pdetailFile, pdetailMerged)
     console.log(`  ✅ pdetail 合并完成: ${Object.keys(pdetailMerged).length} 个宝可梦`)
+    fetched++
 
     await sleep(300)
   }
+  return { total: entries.length, fetched, skipped, failed }
 }
 
 // ── 主入口 ──
@@ -135,6 +143,9 @@ async function fetchCompetitionData(
 export async function runBattleUsageFetch(config: GameConfig, outRoot: string) {
   const args = parseArgs()
   const force = !!args.force
+
+  console.log(`📁 输出目录: ${outRoot}`)
+  console.log(`   模式: ${force ? '强制刷新' : '增量（已缓存则跳过）'}`)
 
   // 1. 级别对战赛季列表
   console.log(`📋 获取${config.game}级别对战赛季列表...`)
@@ -168,7 +179,7 @@ export async function runBattleUsageFetch(config: GameConfig, outRoot: string) {
   mkdirSync(outRoot, { recursive: true })
 
   console.log('\n═══ 级别对战数据 ═══')
-  await fetchCompetitionData(
+  const rankStats = await fetchCompetitionData(
     allSeasons,
     outRoot,
     config.game,
@@ -176,15 +187,21 @@ export async function runBattleUsageFetch(config: GameConfig, outRoot: string) {
     force,
     s => `S${s.season} ${ruleLabel(s.rule)} [${s.name}]`,
   )
+  console.log(
+    `\n📊 级别对战：成功 ${rankStats.fetched}，跳过 ${rankStats.skipped}，失败 ${rankStats.failed}（共 ${rankStats.total}）`,
+  )
 
   console.log('\n═══ 官方大赛数据 ═══')
-  await fetchCompetitionData(
+  const internetStats = await fetchCompetitionData(
     allInternetSeasons,
     outRoot,
     config.game,
     config.resourceHasGamePrefix,
     force,
     s => `${s.name}${s.subname ? ' ' + s.subname : ''} ${ruleLabel(s.rule)}`,
+  )
+  console.log(
+    `\n📊 官方大赛：成功 ${internetStats.fetched}，跳过 ${internetStats.skipped}，失败 ${internetStats.failed}（共 ${internetStats.total}）`,
   )
 
   // 4. 写出元数据索引

@@ -28,12 +28,27 @@ const result: Record<string, any> = existsSync(OUT_FILE)
   : {}
 
 let done = 0
+let fetched = 0
+let skipped = 0
+let failed = 0
 const total = MAX - FROM + 1
+const startedAt = Date.now()
+const elapsed = () => ((Date.now() - startedAt) / 1000).toFixed(1)
+
+function logProgress(dexNum: number, note = '') {
+  if (done % 10 !== 0 && done !== total) return
+  const pct = Math.round((done / total) * 100)
+  console.log(
+    `  ${done}/${total} (${pct}%) - #${dexNum}${note ? ` ${note}` : ''} - ${elapsed()}s`,
+  )
+}
 
 async function fetchSpecies(dexNum: number) {
   // 跳过已缓存的
   if (result[dexNum]?.species && result[dexNum]?.varieties?.length > 0) {
+    skipped++
     done++
+    logProgress(dexNum, '(缓存)')
     return
   }
 
@@ -42,7 +57,9 @@ async function fetchSpecies(dexNum: number) {
       `https://pokeapi.co/api/v2/pokemon-species/${dexNum}`,
     )
     if (!species) {
+      failed++
       done++
+      logProgress(dexNum, '(未找到)')
       return
     }
 
@@ -63,18 +80,20 @@ async function fetchSpecies(dexNum: number) {
     }
 
     result[dexNum] = { species, varieties }
+    fetched++
   } catch (e: any) {
+    failed++
     console.warn(`  ⚠️ species ${dexNum}: ${e.message}`)
   }
 
   done++
-  if (done % 10 === 0 || done === total) {
-    const pct = Math.round((done / total) * 100)
-    process.stdout.write(`\r  ${pct}% (${done}/${total})`)
-  }
+  logProgress(dexNum)
 }
 
-console.log(`📋 拉取 PokeAPI 宝可梦 species ${FROM}~${MAX}，共 ${total} 个`)
+console.log(
+  `📋 拉取 PokeAPI 宝可梦 species ${FROM}~${MAX}，共 ${total} 个（并发 ${CONCURRENCY}）`,
+)
+console.log(`   输出: ${OUT_FILE}`)
 
 for (let i = FROM; i <= MAX; i += CONCURRENCY) {
   const batch = Array.from(
@@ -86,6 +105,7 @@ for (let i = FROM; i <= MAX; i += CONCURRENCY) {
   // 每 50 个保存一次（防止中断丢失）
   if (done % 50 < CONCURRENCY) {
     writeJson(OUT_FILE, result)
+    console.log(`  💾 已保存进度：${Object.keys(result).length} 个 species`)
   }
 
   if (i + CONCURRENCY <= MAX) await sleep(200)
@@ -93,4 +113,6 @@ for (let i = FROM; i <= MAX; i += CONCURRENCY) {
 
 writeJson(OUT_FILE, result)
 console.log(`\n✅ 已写入 ${OUT_FILE}`)
-console.log(`   共 ${Object.keys(result).length} 个 species 的完整 PokeAPI 原始数据`)
+console.log(
+  `   共 ${Object.keys(result).length} 个 species；新拉取 ${fetched}，跳过缓存 ${skipped}，失败 ${failed}，耗时 ${elapsed()}s`,
+)

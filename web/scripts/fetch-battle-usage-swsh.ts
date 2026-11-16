@@ -63,4 +63,5 @@ const config: GameConfig = {
   },
 }
 
+console.log('🎮 剑盾（SwSh）对战使用率数据拉取')
 await runBattleUsageFetch(config, OUT_ROOT)

@@ -21,27 +21,44 @@ const MAX = parseInt(args.max as string) || 3000
 const CONCURRENCY = 5
 
 const ids = Array.from({ length: MAX - FROM + 1 }, (_, i) => FROM + i)
-console.log(`📋 拉取 PokeAPI 道具 ID ${FROM}~${MAX}，共 ${ids.length} 个`)
+const startedAt = Date.now()
+const elapsed = () => ((Date.now() - startedAt) / 1000).toFixed(1)
+console.log(
+  `📋 拉取 PokeAPI 道具 ID ${FROM}~${MAX}，共 ${ids.length} 个（并发 ${CONCURRENCY}）`,
+)
+console.log(`   输出: ${OUT_FILE}`)
 
 let done = 0
+let notFound = 0
+let failed = 0
 async function fetchItem(itemId: number) {
-  const data = await fetchWithRetry(`https://pokeapi.co/api/v2/item/${itemId}`)
-  done++
-  if (done % 50 === 0 || done === ids.length) {
-    console.log(`  ${done}/${ids.length}`)
-  }
-  return data
+  return fetchWithRetry(`https://pokeapi.co/api/v2/item/${itemId}`)
 }
 
 const results = (
   await runBatch(ids, CONCURRENCY, id =>
-    fetchItem(id).catch(e => {
-      console.warn(`⚠️ 道具 ${id} 拉取失败: ${(e as Error).message}`)
-      return null
-    }),
+    fetchItem(id)
+      .then(data => {
+        if (!data) notFound++
+        return data
+      })
+      .catch(e => {
+        failed++
+        console.warn(`⚠️ 道具 ${id} 拉取失败: ${(e as Error).message}`)
+        return null
+      })
+      .finally(() => {
+        done++
+        if (done % 50 === 0 || done === ids.length) {
+          const pct = ((done / ids.length) * 100).toFixed(1)
+          console.log(`  ${done}/${ids.length} (${pct}%) - ${elapsed()}s`)
+        }
+      }),
   )
 ).filter(Boolean)
 
 writeJson(OUT_FILE, results)
 console.log(`✅ 已写入 ${OUT_FILE}`)
-console.log(`   共 ${results.length} 个道具的完整 PokeAPI 原始数据`)
+console.log(
+  `   成功 ${results.length} 个，未找到 ${notFound} 个，失败 ${failed} 个，耗时 ${elapsed()}s`,
+)
