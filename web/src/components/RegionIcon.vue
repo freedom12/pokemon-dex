@@ -12,7 +12,7 @@
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
 
-const BASE = import.meta.env.BASE_URL + 'img/original_mark_icon/'
+const BASE = import.meta.env.BASE_URL + 'img/origin_mark_icon/'
 const FALLBACK = import.meta.env.BASE_URL + 'img/fallback-item.png'
 
 function onError(e: Event) {

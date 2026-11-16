@@ -44,7 +44,7 @@ export const VG_ICONS: Record<string, string[]> = {
   'heartgold-soulsilver': ['SF007', 'SF008'],
   platinum: ['SF012'],
   'diamond-pearl': ['SF010', 'SF011'],
-  'firered-leafgreen': ['SF004', 'SF005'],
+  'firered-leafgreen': ['SF056', 'SF057'],
   emerald: ['SF003'],
   'ruby-sapphire': ['SF001', 'SF002'],
   crystal: ['SF041'],

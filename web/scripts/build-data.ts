@@ -525,6 +525,8 @@ for (const [langId, langName, folder, suffix] of LANGS) {
     { file: 'zukan_comment_scarlet', prefix: 'ZKN_SCARLET', digits: 4, label: 'Pokémon Scarlet' },
     { file: 'zukan_comment_violet', prefix: 'ZKN_VIOLET', digits: 4, label: 'Pokémon Violet' },
     { file: 'zukan_comment_za', prefix: 'ZKN_ZA', digits: 4, label: 'Pokémon Legends Z-A' },
+    { file: 'zukan_comment_fr', prefix: 'ZKN_FR', digits: 4, label: 'Pokémon FireRed' },
+    { file: 'zukan_comment_lg', prefix: 'ZKN_LG', digits: 4, label: 'Pokémon LeafGreen' },
   ]
 
   const gameNameMap: Record<string, string> = {}
@@ -547,8 +549,11 @@ for (const [langId, langName, folder, suffix] of LANGS) {
   }
 
   // 游戏 sids 全局去重索引
-  const gIndex: string[][] = []
+  // 以 ZUKAN_DESC_GAMES 的固定顺序预置，避免不同语言因缺少某个游戏的
+  // 图鉴文本而得到不同的索引顺序
+  const gIndex: string[][] = ZUKAN_DESC_GAMES.map((sids) => [...sids])
   const gMap: Record<string, number> = {}
+  gIndex.forEach((sids, i) => { gMap[sids.join(',')] = i })
   function getGIdx(sids: string[]) {
     const key = sids.join(',')
     if (gMap[key] !== undefined) return gMap[key]
